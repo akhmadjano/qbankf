@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Admin panel — Savollar banki</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- Mobile topbar (only visible on mobile/tablet) -->
+<div class="mobile-topbar">
+  <button class="hamburger" id="hamburgerBtn" aria-label="Menyu">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="brand-title">📚 Savollar banki <small>Admin panel</small></div>
+</div>
+
+<!-- Sidebar backdrop -->
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+<div class="app-shell">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <div class="brand">📚 Savollar banki<small>Admin panel</small></div>
+    <div class="nav-item active" data-panel="panel-overview"><span class="icon-bar-chart"></span> Umumiy ko'rinish</div>
+    <div class="nav-item" data-panel="panel-subjects"><span class="icon-folder"></span> Fanlar</div>
+    <div class="nav-item" data-panel="panel-questions"><span class="icon-help-circle"></span> Savollar</div>
+    <div class="nav-item" data-panel="panel-results"><span class="icon-trophy"></span> Natijalar</div>
+    <div class="nav-item" data-panel="panel-vocab"><span class="icon-layers"></span> Lug'at (so'zlar banki)</div>
+    <div class="nav-item" data-panel="panel-vocab-results"><span class="icon-bar-chart-2"></span> Lug'at natijalari</div>
+    <div class="nav-item" data-panel="panel-students"><span class="icon-user"></span> O'quvchilar</div>
+    <div class="nav-item" id="logoutBtn"><span class="icon-log-out"></span> Chiqish</div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- OVERVIEW -->
+    <div class="panel active" id="panel-overview">
+      <div class="topbar"><h2>Umumiy ko'rinish</h2></div>
+      <div class="stat-grid" id="statGrid"></div>
+      <div class="card">
+        <h3>So'nggi natijalar</h3>
+        <table id="recentResultsTable">
+          <thead><tr><th>O'quvchi</th><th>Fan</th><th>Ball</th><th>Sana</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SUBJECTS -->
+    <div class="panel" id="panel-subjects">
+      <div class="topbar">
+        <h2>Fanlar</h2>
+        <div class="topbar-actions">
+          <button class="btn btn-primary" id="addSubjectBtn">+ Fan qo'shish</button>
+        </div>
+      </div>
+      <div class="card">
+        <table>
+          <thead><tr><th>Nomi</th><th>Tavsif</th><th>Savollar</th><th>Vaqt</th><th></th></tr></thead>
+          <tbody id="subjectsTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- QUESTIONS -->
+    <div class="panel" id="panel-questions">
+      <div class="topbar">
+        <h2>Savollar</h2>
+        <div class="topbar-actions">
+          <button class="btn btn-outline" id="exportXlsxBtn"><span class="icon-download"></span> Excel</button>
+          <button class="btn btn-outline" id="exportPdfBtn"><span class="icon-download"></span> PDF</button>
+          <button class="btn btn-outline" id="openImportBtn"><span class="icon-upload"></span> Excel yuklash</button>
+          <button class="btn btn-outline" id="openPdfImportBtn"><span class="icon-file-text"></span> PDF yuklash</button>
+          <button class="btn btn-primary" id="addQuestionBtn">+ Savol</button>
+        </div>
+      </div>
+      <div class="toolbar">
+        <select id="filterSubject"><option value="">Barcha fanlar</option></select>
+        <button class="btn btn-outline btn-sm" id="selectedPdfBtn" style="display:none;">
+          <span class="icon-bookmark"></span> PDF (<span id="selectedPdfCount">0</span>)
+        </button>
+      </div>
+      <div class="card">
+        <table>
+          <thead><tr><th>Savol</th><th>Fan</th><th>Rasm</th><th>Variantlar</th><th>To'g'ri</th><th>Amallar</th></tr></thead>
+          <tbody id="questionsTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- RESULTS -->
+    <div class="panel" id="panel-results">
+      <div class="topbar"><h2>Natijalar</h2></div>
+      <div class="toolbar">
+        <select id="resultsFilterSubject"><option value="">Barcha fanlar</option></select>
+      </div>
+      <div class="card">
+        <table>
+          <thead><tr><th>O'quvchi</th><th>Fan</th><th>Ball</th><th>%</th><th>Sana</th><th></th></tr></thead>
+          <tbody id="resultsTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- STUDENTS -->
+    <div class="panel" id="panel-students">
+      <div class="topbar"><h2>O'quvchilar</h2></div>
+      <div class="card">
+        <table>
+          <thead><tr><th>Ism</th><th>Telegram</th><th>Urinishlar</th><th>O'rtacha %</th><th></th></tr></thead>
+          <tbody id="studentsTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- VOCAB WORDS (fanlarga biriktirilgan so'zlar) -->
+    <div class="panel" id="panel-vocab">
+      <div class="topbar">
+        <h2>Lug'at — so'zlar</h2>
+        <div class="topbar-actions">
+          <button class="btn btn-outline" id="downloadVocabTemplateBtn"><span class="icon-download"></span> Excel shablon</button>
+          <button class="btn btn-outline" id="openVocabImportBtn"><span class="icon-upload"></span> Excel yuklash</button>
+          <button class="btn btn-primary" id="addVocabWordBtn2">+ So'z qo'shish</button>
+        </div>
+      </div>
+      <p style="font-size:13px;color:var(--muted);margin:-8px 0 14px;">
+        Har bir so'z albatta bitta <strong>fanga</strong> biriktiriladi (masalan: Reading, Writing, Math). O'quvchi ilovasida so'zlar shu fan bo'yicha guruhlanib ko'rsatiladi.
+      </p>
+      <div class="toolbar" style="margin-bottom:12px;">
+        <select id="vocabWordsFilterSubject"><option value="">Barcha fanlar</option></select>
+      </div>
+      <details style="margin-bottom:14px;">
+        <summary style="cursor:pointer;font-size:13px;color:var(--muted);font-weight:600;">Ko'p so'zni birdan matn orqali qo'shish</summary>
+        <div class="field" style="margin-top:10px;max-width:520px;">
+          <label>Fan</label>
+          <select id="vocabBulkSubject"></select>
+        </div>
+        <div class="field" style="max-width:520px;">
+          <label>Har qatorda: so'z - tarjima</label>
+          <textarea id="vocabBulkWords" rows="5" placeholder="apple - olma&#10;book - kitob&#10;table - stol"></textarea>
+        </div>
+        <button class="btn btn-outline btn-sm" id="addVocabBulkBtn">Ro'yxatni qo'shish</button>
+      </details>
+      <div class="card">
+        <table>
+          <thead><tr><th>So'z</th><th>Tarjima</th><th>Misol</th><th>Fan</th><th></th></tr></thead>
+          <tbody id="vocabWordsTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- VOCAB RESULTS -->
+    <div class="panel" id="panel-vocab-results">
+      <div class="topbar"><h2>Lug'at natijalari (test)</h2></div>
+      <div class="card">
+        <table>
+          <thead><tr><th>O'quvchi</th><th>Fan</th><th>Eng yaxshi</th><th>Oxirgi</th><th>Urinishlar</th><th>Holat</th><th>Sana</th></tr></thead>
+          <tbody id="vocabResultsTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+
+
+  </div><!-- /main -->
+</div><!-- /app-shell -->
+
+<!-- ========== MODALS ========== -->
+
+<!-- SUBJECT MODAL -->
+<div class="modal-overlay" id="subjectModal">
+  <div class="modal">
+    <h3 id="subjectModalTitle">Fan qo'shish</h3>
+    <input type="hidden" id="subjectId" />
+    <div class="field"><label>Fan nomi</label><input type="text" id="subjectName" /></div>
+    <div class="field"><label>Tavsif (ixtiyoriy)</label><textarea id="subjectDesc" rows="3"></textarea></div>
+    <div class="field">
+      <label>Test vaqti — daqiqa (ixtiyoriy)</label>
+      <input type="number" id="subjectTimeLimit" min="1" placeholder="Cheklanmagan" />
+      <p style="font-size:12px;color:var(--muted);margin:6px 0 0;">Bo'sh qoldirsangiz, vaqt chegarasi bo'lmaydi.</p>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('subjectModal')">Bekor qilish</button>
+      <button class="btn btn-primary" id="saveSubjectBtn">Saqlash</button>
+    </div>
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div class="modal-overlay" id="importModal">
+  <div class="modal" style="max-width:560px;">
+    <h3>Excel orqali yuklash</h3>
+    <p style="font-size:13px;color:var(--muted);margin-top:-8px;margin-bottom:14px;">Avval shablonni yuklab oling, to'ldiring, so'ng shu yerga qaytaring.</p>
+    <button class="btn btn-outline btn-sm" id="downloadTemplateBtn" type="button"><span class="icon-download"></span> Shablon yuklab olish</button>
+    <div class="field" style="margin-top:16px;">
+      <label>Fanga yuklash (ixtiyoriy)</label>
+      <select id="importDefaultSubject"><option value="">— Excel'dagi "Fan" ustunidan —</option></select>
+    </div>
+    <div class="field">
+      <label>Excel fayl (.xlsx)</label>
+      <input type="file" id="importFile" accept=".xlsx" />
+    </div>
+    <div id="importResultBox"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('importModal')">Yopish</button>
+      <button class="btn btn-primary" id="runImportBtn">Yuklash</button>
+    </div>
+  </div>
+</div>
+
+<!-- PDF IMPORT MODAL -->
+<div class="modal-overlay" id="pdfImportModal">
+  <div class="modal" style="max-width:560px;">
+    <h3>PDF orqali yuklash</h3>
+    <p style="font-size:13px;color:var(--muted);margin-top:-8px;margin-bottom:14px;">College Board "Question Bank" PDF faylini yuklang — savollar avtomatik aniqlanadi.</p>
+    <div class="field">
+      <label>Qaysi fanga?</label>
+      <select id="pdfImportSubject"><option value="">— Fanni tanlang —</option></select>
+    </div>
+    <div class="field">
+      <label>PDF fayl (.pdf)</label>
+      <input type="file" id="pdfImportFile" accept=".pdf" />
+    </div>
+    <div id="pdfImportResultBox"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('pdfImportModal')">Yopish</button>
+      <button class="btn btn-primary" id="runPdfImportBtn">Yuklash</button>
+    </div>
+  </div>
+</div>
+
+<!-- QUESTION MODAL -->
+<div class="modal-overlay" id="questionModal">
+  <div class="modal">
+    <h3 id="questionModalTitle">Savol qo'shish</h3>
+    <input type="hidden" id="questionId" />
+    <div class="field"><label>Fan</label><select id="qSubject"></select></div>
+    <div class="field"><label>Savol matni</label><textarea id="qText" rows="3"></textarea></div>
+    <div class="field">
+      <label>Rasm (ixtiyoriy)</label>
+      <input type="file" id="qImageFile" accept="image/*" />
+      <div class="upload-progress" id="uploadProgress"></div>
+      <img id="qImagePreview" class="img-preview" />
+      <input type="hidden" id="qImageUrl" />
+    </div>
+    <div class="field">
+      <label>Variantlar (kamida 2 ta)</label>
+      <div id="optionsList"></div>
+      <button type="button" class="btn btn-outline btn-sm" id="addOptionBtn" style="margin-top:8px;">+ Variant qo'shish</button>
+      <p style="font-size:12px;color:var(--muted);margin:6px 0 0;">To'g'ri javobni belgilash uchun variant yonidagi doirachani bosing</p>
+    </div>
+    <div class="field"><label>Izoh (ixtiyoriy)</label><textarea id="qExplanation" rows="2"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('questionModal')">Bekor qilish</button>
+      <button class="btn btn-primary" id="saveQuestionBtn">Saqlash</button>
+    </div>
+  </div>
+</div>
+
+<!-- RESULT DETAIL MODAL -->
+<div class="modal-overlay" id="resultDetailModal">
+  <div class="modal" style="max-width:760px;">
+    <div class="result-modal-head">
+      <h3 id="resultDetailTitle">Natija tafsiloti</h3>
+      <label class="wrong-toggle">
+        <input type="checkbox" id="onlyWrongToggle" onchange="toggleOnlyWrong()" />
+        Faqat xato javoblar
+      </label>
+    </div>
+    <div id="resultDetailBody"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" id="resultPdfBtn"><span class="icon-download"></span> PDF</button>
+      <button class="btn btn-outline" onclick="closeModal('resultDetailModal')">Yopish</button>
+    </div>
+  </div>
+</div>
+
+<!-- VOCAB WORD MODAL (qo'shish/tahrirlash) -->
+<div class="modal-overlay" id="vocabWordModal">
+  <div class="modal">
+    <h3 id="vocabWordModalTitle">So'z qo'shish</h3>
+    <input type="hidden" id="vocabWordId" />
+    <div class="field"><label>Fan *</label><select id="vocabWordSubject"></select></div>
+    <div class="field"><label>So'z (inglizcha)</label><input type="text" id="vocabWordText" placeholder="apple" /></div>
+    <div class="field"><label>Tarjimasi</label><input type="text" id="vocabWordTranslation" placeholder="olma" /></div>
+    <div class="field"><label>Misol jumla (ixtiyoriy)</label><textarea id="vocabWordExample" rows="2" placeholder="I eat an apple every morning."></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('vocabWordModal')">Bekor qilish</button>
+      <button class="btn btn-primary" id="saveVocabWordBtn">Saqlash</button>
+    </div>
+  </div>
+</div>
+
+<!-- VOCAB EXCEL IMPORT MODAL -->
+<div class="modal-overlay" id="vocabImportModal">
+  <div class="modal" style="max-width:560px;">
+    <h3>So'zlarni Excel orqali yuklash</h3>
+    <p style="font-size:13px;color:var(--muted);margin-top:-8px;margin-bottom:14px;">Avval shablonni yuklab oling, to'ldiring, so'ng shu yerga qaytaring. Faylda qanday fan tanlansa, barcha so'zlar o'sha fanga qo'shiladi.</p>
+    <button class="btn btn-outline btn-sm" id="downloadVocabTemplateBtn2" type="button"><span class="icon-download"></span> Shablon yuklab olish</button>
+    <div class="field" style="margin-top:16px;">
+      <label>Fan *</label>
+      <select id="vocabImportSubject"></select>
+    </div>
+    <div class="field">
+      <label>Excel fayl (.xlsx)</label>
+      <input type="file" id="vocabImportFile" accept=".xlsx" />
+    </div>
+    <div id="vocabImportResultBox"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('vocabImportModal')">Yopish</button>
+      <button class="btn btn-primary" id="runVocabImportBtn">Yuklash</button>
+    </div>
+  </div>
+</div>
+
+<!-- QUESTION VIEWER MODAL -->
+<div class="modal-overlay" id="questionViewModal">
+  <div class="modal qview-modal">
+    <div class="qview-head">
+      <h3>Savol ID: <span id="qvId"></span></h3>
+      <span class="qview-close" onclick="closeModal('questionViewModal')"><span class="icon-x"></span></span>
+    </div>
+    <table class="qview-meta-table">
+      <thead><tr><th>Fan</th><th>Rasm</th><th>Variantlar</th><th>To'g'ri javob</th></tr></thead>
+      <tbody>
+        <tr>
+          <td id="qvSubject"></td>
+          <td id="qvHasImage"></td>
+          <td id="qvOptionCount"></td>
+          <td id="qvCorrectLetter"></td>
+        </tr>
+      </tbody>
+    </table>
+    <div id="qvSourceMeta" class="qview-source-meta" style="display:none;"></div>
+    <div class="qview-body">
+      <div class="qview-question-pane">
+        <div id="qvQuestionText" class="qview-question-text"></div>
+        <img id="qvImage" class="qview-image" style="display:none;" />
+      </div>
+      <div class="qview-answer-pane">
+        <h4>Javob</h4>
+        <div id="qvOptions"></div>
+        <div id="qvExplanationBox" class="qview-explanation" style="display:none;"></div>
+      </div>
+    </div>
+    <div class="qview-footer">
+      <button class="btn btn-outline btn-sm" id="qvBackBtn"><span class="icon-chevron-left"></span> Orqaga</button>
+      <label class="qview-reveal-toggle">
+        <input type="checkbox" id="qvRevealToggle" onchange="toggleQvReveal()" />
+        To'g'ri javob va izohni ko'rsat
+      </label>
+      <button class="btn btn-outline btn-sm" id="qvAddPdfBtn" onclick="toggleQvPdfSelection()"><span class="icon-bookmark"></span> PDF</button>
+      <button class="btn btn-primary btn-sm" id="qvNextBtn">Keyingi <span class="icon-chevron-right"></span></button>
+    </div>
+  </div>
+</div>
+
+<script src="js/icons.js"></script>
+<script>
+// Hamburger / sidebar drawer
+(function () {
+  var btn = document.getElementById('hamburgerBtn');
+  var sidebar = document.getElementById('sidebar');
+  var backdrop = document.getElementById('sidebarBackdrop');
+
+  function open() {
+    sidebar.classList.add('open');
+    backdrop.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+  function close() {
+    sidebar.classList.remove('open');
+    backdrop.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  btn.addEventListener('click', function () {
+    sidebar.classList.contains('open') ? close() : open();
+  });
+  backdrop.addEventListener('click', close);
+
+  // Close on nav tap (mobile)
+  document.querySelectorAll('.nav-item').forEach(function (item) {
+    item.addEventListener('click', function () {
+      if (window.innerWidth <= 768) close();
+    });
+  });
+})();
+</script>
+<script src="js/admin.js"></script>
+</body>
+</html>

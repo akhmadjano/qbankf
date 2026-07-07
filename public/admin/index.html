@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Admin kirish — Savollar banki</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="login-wrap">
+    <form class="login-card" id="loginForm">
+      <h1>Admin panel</h1>
+      <p class="subtitle">Savollar bankini boshqarish uchun tizimga kiring</p>
+      <div class="field">
+        <label>Login</label>
+        <input type="text" id="username" autocomplete="username" required />
+      </div>
+      <div class="field">
+        <label>Parol</label>
+        <input type="password" id="password" autocomplete="current-password" required />
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Kirish</button>
+      <div class="error-msg" id="errorMsg"></div>
+    </form>
+  </div>
+
+<script>
+  // Agar token bor bo'lsa to'g'ridan-to'g'ri dashboardga
+  if (localStorage.getItem('admin_token')) {
+    window.location.href = 'dashboard.html';
+  }
+
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+    const errorMsg = document.getElementById('errorMsg');
+    errorMsg.textContent = '';
+
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        errorMsg.textContent = data.error || 'Xatolik yuz berdi';
+        return;
+      }
+      localStorage.setItem('admin_token', data.token);
+      window.location.href = 'dashboard.html';
+    } catch (err) {
+      errorMsg.textContent = 'Serverga ulanishda xatolik';
+    }
+  });
+</script>
+</body>
+</html>

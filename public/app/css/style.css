@@ -1,0 +1,2105 @@
+/* =====================================================
+   SAT BANK — App UI
+   Dizayn: Zamonaviy ta'lim ilovasi uslubi
+   Rang sxemasi: Chuqur ko'k + Oltin aksent + Yashil muvaffaqiyat
+   ===================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --primary:        #0f3460;
+  --primary-light:  #1a5276;
+  --primary-soft:   #e8f0fb;
+  --accent:         #f5a623;
+  --accent-soft:    #fff8ec;
+  --bg:             #f0f4f9;
+  --card:           #ffffff;
+  --text:           #0f1c2e;
+  --muted:          #6b7c93;
+  --border:         #dde4ed;
+  --success:        #0f9d58;
+  --success-soft:   #e6f7ee;
+  --danger:         #e53935;
+  --danger-soft:    #fdecea;
+  --gradient-hero:  linear-gradient(135deg, #0f3460 0%, #1a5276 60%, #16213e 100%);
+  --radius-sm:      8px;
+  --radius-md:      14px;
+  --radius-lg:      20px;
+  --shadow-sm:      0 1px 4px rgba(15,52,96,0.08);
+  --shadow-md:      0 4px 16px rgba(15,52,96,0.12);
+  --shadow-lg:      0 8px 32px rgba(15,52,96,0.18);
+  --tg-safe-top:    0px;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  font-family: 'Inter', -apple-system, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+.screen { display: none; min-height: 100vh; flex-direction: column; padding-top: var(--tg-safe-top); }
+.screen.active { display: flex; }
+
+/* Telegram to'liq ekranida native "Close/menyu" tugmalari shu oq zolaning ustiga tushadi */
+.tg-safe-area-top {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: var(--tg-safe-top);
+  background: #fff;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.test-card {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+/* =========================================
+   LOADING
+   ========================================= */
+#screen-loading {
+  align-items: center;
+  justify-content: center;
+  background: var(--gradient-hero);
+}
+.spinner {
+  width: 40px; height: 40px;
+  border: 3px solid rgba(255,255,255,0.2);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.btn-spinner {
+  width: 15px; height: 15px;
+  border: 2.5px solid rgba(255,255,255,0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 7px;
+  animation: spin 0.7s linear infinite;
+}
+
+/* Nusxa ko'chirish/tanlashni bloklaymiz — faqat matn kiritish maydonlari bundan mustasno */
+html, body {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+input, textarea {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
+/* =========================================
+   HOME — FANLAR SAHIFASI
+   ========================================= */
+.home-header {
+  background: var(--gradient-hero);
+  padding: 28px 20px 24px;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+.home-header::after {
+  content: '';
+  position: absolute;
+  right: -30px; top: -30px;
+  width: 160px; height: 160px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.04);
+}
+.home-header h1 {
+  font-size: 22px;
+  font-weight: 800;
+  margin: 0 0 6px;
+  letter-spacing: -0.3px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.home-header p {
+  margin: 0;
+  font-size: 13px;
+  opacity: 0.75;
+  font-weight: 400;
+}
+
+.subject-list {
+  padding: 16px 16px 90px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.subject-card {
+  background: var(--card);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  border: 1px solid transparent;
+}
+.subject-card:active {
+  transform: scale(0.98);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary-soft);
+}
+.subject-card .subject-icon {
+  width: 44px; height: 44px;
+  border-radius: var(--radius-sm);
+  background: var(--primary-soft);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.subject-card .info { flex: 1; min-width: 0; }
+.subject-card .info h3 {
+  margin: 0 0 3px;
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.subject-card .info p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.subject-card .arrow {
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+/* =========================================
+   REYTING (LEADERBOARD)
+   ========================================= */
+.gradient-header {
+  background: var(--gradient-hero) !important;
+  color: #fff !important;
+  padding: 28px 20px 24px !important;
+}
+.gradient-header h1 { color: #fff !important; font-weight: 800; font-size: 22px; }
+.gradient-header p { color: rgba(255,255,255,0.7) !important; }
+
+#leaderboardList {
+  padding-bottom: 90px;
+}
+
+.leaderboard-item {
+  background: var(--card);
+  margin: 0 16px 10px;
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid transparent;
+  transition: transform 0.12s;
+}
+.leaderboard-item:first-child { margin-top: 16px; }
+.leaderboard-item.is-me {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.leaderboard-item:active { transform: scale(0.99); }
+
+.lb-rank {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 14px;
+  background: var(--bg);
+  color: var(--muted);
+  flex-shrink: 0;
+}
+.lb-rank.gold   { background: #fff3cd; color: #b8860b; }
+.lb-rank.silver { background: #f0f0f0; color: #6b7c93; }
+.lb-rank.bronze { background: #fde8d0; color: #c0623a; }
+
+.lb-info { flex: 1; min-width: 0; }
+.lb-name {
+  font-weight: 700; font-size: 14px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  display: flex; align-items: center; gap: 6px;
+}
+.lb-you-tag {
+  font-size: 10px; font-weight: 700;
+  background: var(--accent); color: #fff;
+  padding: 1px 7px; border-radius: 20px;
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.lb-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.lb-pct {
+  font-size: 18px; font-weight: 800; color: var(--primary);
+  flex-shrink: 0;
+}
+
+/* =========================================
+   PROFIL SAHIFASI
+   ========================================= */
+.profile-header {
+  background: var(--gradient-hero);
+  padding: 32px 20px 28px;
+  text-align: center;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+.profile-header::before {
+  content: '';
+  position: absolute;
+  left: -40px; bottom: -40px;
+  width: 180px; height: 180px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.04);
+}
+.profile-avatar {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  border: 3px solid rgba(255,255,255,0.35);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 32px;
+  margin: 0 auto 12px;
+  color: #fff;
+}
+.profile-name {
+  font-size: 20px; font-weight: 800; letter-spacing: -0.2px;
+}
+.profile-name-row {
+  display: flex; align-items: center; justify-content: center;
+  gap: 8px;
+}
+.profile-edit-btn {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.16);
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 0.12s, background 0.15s;
+}
+.profile-edit-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.28); }
+.profile-edit-btn svg { width: 14px; height: 14px; }
+.profile-username {
+  font-size: 13px; opacity: 0.65; margin-top: 3px;
+}
+
+/* Profilni tahrirlash forma maydonlari */
+.edit-profile-fields {
+  display: flex; flex-direction: column; gap: 14px;
+  margin-bottom: 18px;
+}
+.field-group { display: flex; flex-direction: column; gap: 6px; }
+.field-label { font-size: 13px; font-weight: 600; color: var(--text); }
+.field-required { color: var(--danger); }
+.text-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.text-input:focus { border-color: var(--primary); }
+.field-error {
+  color: var(--danger);
+  font-size: 13px;
+  display: none;
+}
+.field-error.show { display: block; }
+
+/* Statistika kartochkalari */
+.profile-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 16px 16px 4px;
+}
+.stat-box {
+  background: var(--card);
+  border-radius: var(--radius-md);
+  padding: 16px 10px 14px;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  transition: transform 0.12s;
+}
+.stat-box:active { transform: scale(0.97); }
+.stat-box-icon {
+  width: 36px; height: 36px;
+  border-radius: var(--radius-sm);
+  background: var(--primary-soft);
+  color: var(--primary);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 6px;
+}
+.stat-box-num {
+  font-size: 20px; font-weight: 800;
+  color: var(--primary);
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+}
+.stat-box-lbl {
+  font-size: 11px; color: var(--muted); font-weight: 500;
+}
+
+.profile-section-title {
+  font-size: 13px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--muted);
+  padding: 16px 16px 8px;
+  display: flex; align-items: center; gap: 6px;
+}
+
+/* Tarix elementlari */
+#historyList {
+  padding-bottom: 90px;
+}
+
+.history-item {
+  background: var(--card);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin: 0 16px 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid transparent;
+  transition: transform 0.12s, border-color 0.12s;
+}
+.history-item:active {
+  border-color: var(--primary-soft);
+}
+.history-item-icon {
+  width: 38px; height: 38px;
+  border-radius: var(--radius-sm);
+  background: var(--primary-soft);
+  color: var(--primary);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.history-item-body { flex: 1; min-width: 0; }
+.history-item .name { font-weight: 600; font-size: 14px; }
+.history-item .date { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.history-item .score {
+  font-size: 16px; font-weight: 800; color: var(--primary);
+  flex-shrink: 0;
+}
+.history-item-right {
+  flex-shrink: 0;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 4px;
+}
+.history-pct { font-size: 12px; font-weight: 600; color: var(--muted); }
+.history-pass-tag {
+  font-size: 10px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.04em; padding: 2px 8px; border-radius: 20px;
+}
+.history-pass-tag.passed { background: var(--success-soft); color: var(--success); }
+.history-pass-tag.failed { background: var(--danger-soft); color: var(--danger); }
+
+/* Natija sahifasi: o'tish belgisi va statistika qatori */
+.pass-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 13px; font-weight: 700;
+  padding: 7px 16px; border-radius: 24px;
+  margin-bottom: 14px;
+}
+.pass-badge.passed { background: rgba(15,157,88,0.35); color: #fff; }
+.pass-badge.failed { background: rgba(229,57,53,0.35); color: #fff; }
+
+.result-stat-row {
+  display: flex; justify-content: center; gap: 14px;
+  margin-top: 20px;
+}
+.result-stat-item {
+  background: rgba(255,255,255,0.15);
+  border-radius: var(--radius-md);
+  padding: 12px 20px;
+  min-width: 76px;
+  text-align: center;
+}
+.result-stat-item.correct { background: rgba(15,157,88,0.3); }
+.result-stat-item.wrong { background: rgba(229,57,53,0.3); }
+.result-stat-num { font-size: 22px; font-weight: 800; }
+.result-stat-lbl { font-size: 11px; opacity: 0.85; margin-top: 2px; }
+
+
+/* =========================================
+   START SHEET
+   ========================================= */
+.sheet-overlay {
+  position: fixed; inset: 0;
+  background: rgba(10,20,35,0.5);
+  display: none; align-items: flex-end; z-index: 200;
+  backdrop-filter: blur(2px);
+}
+.sheet-overlay.active { display: flex; }
+.sheet {
+  background: #fff;
+  width: 100%;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding: 22px 18px 28px;
+  animation: slideUp 0.22s ease;
+  position: relative;
+  z-index: 201;
+}
+.sheet-compact { padding-bottom: max(28px, env(safe-area-inset-bottom)); }
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+.sheet-handle {
+  width: 40px; height: 4px;
+  border-radius: 2px;
+  background: var(--border);
+  margin: 0 auto 18px;
+}
+.sheet h3 { margin: 0 0 6px; font-size: 18px; font-weight: 800; }
+.sheet-sub { margin: 0 0 14px; font-size: 13px; color: var(--muted); }
+.sheet-time-note {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--accent);
+  background: var(--accent-soft);
+  padding: 8px 12px; border-radius: var(--radius-sm);
+  margin-bottom: 14px; font-weight: 600;
+}
+
+.count-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.count-row {
+  display: flex;
+  gap: 10px;
+}
+
+.count-row button {
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border);
+  background: #fff;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  color: var(--text);
+  transition: all 0.15s;
+}
+.count-row button:active { transform: scale(0.96); }
+.count-row button.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+.count-full {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border);
+  background: #fff;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  color: var(--text);
+  transition: all 0.15s;
+}
+.count-full:active { transform: scale(0.96); }
+.count-full.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+/* =========================================
+   TOAST (qisqa bildirishnoma)
+   ========================================= */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 30px;
+  transform: translate(-50%, 20px);
+  background: var(--text);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: var(--shadow-lg);
+  z-index: 500;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  max-width: 86%;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.toast.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+.toast.toast-success { background: var(--success); }
+.toast.toast-danger { background: var(--danger); }
+
+/* =========================================
+   GENERIC CONFIRM MODAL
+   ========================================= */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(10,20,35,0.55);
+  display: none; align-items: center; justify-content: center;
+  z-index: 600;
+  backdrop-filter: blur(2px);
+  padding: 20px;
+}
+.modal-overlay.active { display: flex; }
+.modal-box {
+  background: #fff;
+  width: 100%;
+  max-width: 340px;
+  border-radius: var(--radius-lg);
+  padding: 26px 22px 20px;
+  text-align: center;
+  animation: modalPop 0.18s ease;
+  box-shadow: var(--shadow-lg);
+}
+@keyframes modalPop {
+  from { transform: scale(0.92); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+.modal-icon {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 14px;
+}
+.modal-icon.icon-danger { background: var(--danger-soft); color: var(--danger); }
+.modal-icon.icon-success { background: var(--success-soft); color: var(--success); }
+.modal-box h3 { margin: 0 0 8px; font-size: 17px; font-weight: 800; color: var(--text); }
+.modal-box p { margin: 0 0 20px; font-size: 13.5px; color: var(--muted); line-height: 1.5; white-space: pre-line; }
+.modal-actions { display: flex; gap: 10px; }
+.modal-btn {
+  flex: 1;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: none;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.modal-btn:active { transform: scale(0.96); }
+.modal-btn-secondary { background: var(--bg); color: var(--text); }
+.modal-btn-primary { background: var(--primary); color: #fff; }
+.modal-btn-primary.danger { background: var(--danger); }
+
+/* =========================================
+   QUESTION NAV GRID SHEET
+   ========================================= */
+#qnavSheet {
+  z-index: 200;
+}
+#qnavSheet .sheet {
+  z-index: 201;
+}
+
+/* =========================================
+   TEST SCREEN
+   ========================================= */
+.progress-bar-track { height: 3px; background: rgba(255,255,255,0.2); }
+.progress-bar { height: 3px; background: var(--accent); width: 0%; transition: width 0.25s ease; }
+
+.test-topbar {
+  background: var(--primary);
+  color: #fff;
+  padding: 14px 16px;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  position: relative;
+  z-index: 10;
+}
+.test-topbar .timer {
+  font-weight: 700; font-size: 13px;
+  background: rgba(255,255,255,0.15);
+  padding: 4px 12px; border-radius: 20px;
+  letter-spacing: 0.02em; font-variant-numeric: tabular-nums;
+}
+.test-topbar .timer.timer-warning {
+  background: var(--danger); animation: timerPulse 1s infinite;
+}
+@keyframes timerPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+.test-topbar .progress { font-size: 13px; opacity: 0.85; font-weight: 600; }
+.test-topbar .exit { cursor: pointer; font-size: 13px; opacity: 0.8; }
+
+.question-area {
+  flex: 1; padding: 14px 16px 100px; overflow-y: auto;
+}
+.meta-bar {
+  background: var(--text); color: #fff; font-size: 12px; font-weight: 600;
+  padding: 10px 14px; margin: -14px -16px 16px;
+  display: flex; justify-content: space-between; gap: 10px;
+  border-radius: 0 0 10px 10px;
+}
+.meta-bar span:last-child { opacity: 0.65; font-weight: 400; }
+
+.question-flag-row { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+.flag-btn {
+  border: 1.5px solid var(--border);
+  background: #fff; border-radius: 20px;
+  padding: 6px 14px; font-size: 12px; cursor: pointer; color: var(--muted);
+  font-weight: 600; transition: all 0.15s;
+}
+.flag-btn.flagged {
+  background: var(--accent-soft); border-color: var(--accent); color: #9a6c00;
+}
+
+.question-columns {
+  display: flex;
+  flex-direction: column;
+}
+.question-passage-col { order: 1; }
+.question-options-col { order: 2; }
+
+.question-text {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 16px; line-height: 1.6; margin-bottom: 16px;
+  white-space: pre-wrap;
+}
+.question-image {
+  max-width: 100%; height: auto; max-height: 42vh;
+  object-fit: contain; border-radius: var(--radius-md);
+  margin: 0 auto 16px; display: block;
+  border: 1px solid var(--border);
+}
+
+.option {
+  display: flex; align-items: center; gap: 12px;
+  background: #fff; border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px 18px; margin-bottom: 10px;
+  cursor: pointer; font-size: 14.5px;
+  transition: border-color 0.15s, background 0.15s, transform 0.1s;
+}
+.option:active { transform: scale(0.99); }
+.option .letter {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 1.5px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 13px; flex-shrink: 0;
+}
+.option.selected {
+  border-color: var(--primary); background: var(--primary-soft);
+}
+.option.selected .letter {
+  background: var(--primary); color: #fff; border-color: var(--primary);
+}
+.option.correct {
+  border-color: var(--success); background: var(--success-soft);
+}
+.option.correct .letter { background: var(--success); color: #fff; border-color: var(--success); }
+.option.wrong {
+  border-color: var(--danger); background: var(--danger-soft);
+}
+.option.wrong .letter { background: var(--danger); color: #fff; border-color: var(--danger); }
+
+.test-bottombar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: #fff; border-top: 1px solid var(--border);
+  padding: 10px 16px;
+  padding-bottom: max(10px, env(safe-area-inset-bottom));
+  display: flex; gap: 10px; align-items: center;
+  box-shadow: 0 -2px 12px rgba(15,52,96,0.07);
+  z-index: 50;
+}
+.nav-grid-toggle {
+  font-size: 13px; color: var(--primary-light);
+  cursor: pointer; flex: 1; text-align: center;
+  padding: 10px; border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition: background 0.15s;
+}
+.nav-grid-toggle:active { background: var(--primary-soft); }
+.btn-nav {
+  padding: 10px 18px; border-radius: var(--radius-sm);
+  border: none; font-weight: 700; cursor: pointer; font-size: 14px;
+  display: flex; align-items: center; gap: 4px;
+  transition: transform 0.1s, opacity 0.15s;
+}
+.btn-nav:active { transform: scale(0.96); }
+.btn-nav.prev { background: var(--bg); color: var(--text); }
+.btn-nav.next { background: var(--primary); color: #fff; }
+.btn-nav:disabled { opacity: 0.35; }
+
+/* =========================================
+   SAVOL NAVIGATORI
+   ========================================= */
+.qnav-grid {
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  gap: 10px; padding: 4px 0 12px;
+}
+.qnav-item {
+  aspect-ratio: 1; border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 14px; cursor: pointer;
+  position: relative; background: #fff;
+  transition: transform 0.1s;
+}
+.qnav-item:active { transform: scale(0.92); }
+.qnav-item.answered { background: var(--primary-soft); border-color: var(--primary-light); color: var(--primary); }
+.qnav-item.flagged::after {
+  content: '🚩'; position: absolute; top: -7px; right: -7px; font-size: 11px;
+}
+.qnav-item.current { border-color: var(--primary); border-width: 2px; }
+
+/* =========================================
+   NATIJA SAHIFASI
+   ========================================= */
+.result-header {
+  background: var(--gradient-hero);
+  color: #fff; padding: 32px 20px 24px; text-align: center;
+}
+.result-score {
+  font-size: 48px; font-weight: 800; letter-spacing: -1px;
+}
+.result-sub { opacity: 0.8; font-size: 15px; margin-top: 4px; }
+.result-home-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-top: 16px; background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.25);
+  color: #fff; font-size: 13px; font-weight: 700;
+  padding: 8px 18px; border-radius: 24px; cursor: pointer;
+  transition: background 0.15s;
+}
+.result-home-link:active { background: rgba(255,255,255,0.25); }
+
+.review-topbar {
+  background: var(--primary-light); color: #fff;
+  padding: 10px 16px; font-size: 13px; font-weight: 500;
+}
+
+.review-status-badge {
+  font-size: 11px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.04em; padding: 3px 10px; border-radius: 20px;
+}
+.review-status-badge.correct  { background: var(--success-soft); color: var(--success); }
+.review-status-badge.wrong    { background: var(--danger-soft); color: var(--danger); }
+.review-status-badge.unanswered { background: var(--bg); color: var(--muted); }
+
+.answer-panel-label {
+  font-size: 13px; font-weight: 700; color: var(--text); margin: 18px 0 10px;
+}
+
+.review-option {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 12px 13px; border-radius: var(--radius-sm);
+  margin-bottom: 9px; font-size: 14.5px;
+  background: #fff; border: 1.5px solid var(--border);
+}
+.review-option .letter {
+  width: 26px; height: 26px; border-radius: 50%;
+  border: 1.5px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 12px; flex-shrink: 0; background: var(--bg);
+}
+.review-option.user-selected { border-color: var(--primary-light); }
+.review-option.user-selected .letter {
+  background: var(--primary-light); color: #fff; border-color: var(--primary-light);
+}
+.review-option.reveal-correct { background: var(--success-soft); border-color: #b9e6cc; }
+.review-option.reveal-correct .letter {
+  background: var(--success); color: #fff; border-color: var(--success);
+}
+.review-option.reveal-wrong { background: var(--danger-soft); border-color: #f6c9c2; }
+.review-option.reveal-wrong .letter {
+  background: var(--danger); color: #fff; border-color: var(--danger);
+}
+.review-option-tag {
+  margin-left: auto; font-size: 10px; font-weight: 800;
+  text-transform: uppercase; flex-shrink: 0; padding-top: 4px;
+}
+.review-option-tag.tag-correct { color: var(--success); }
+.review-option-tag.tag-wrong   { color: var(--danger); }
+
+.explanation {
+  font-size: 13px; color: var(--text); margin-top: 14px;
+  padding: 12px 14px; border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  border-left: 3px solid var(--accent);
+  line-height: 1.55;
+}
+
+.reveal-toggle {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--text); flex: 1;
+  justify-content: center; white-space: nowrap;
+  font-weight: 600;
+}
+.reveal-toggle input { cursor: pointer; accent-color: var(--primary); }
+
+/* =========================================
+   UMUMIY TUGMALAR
+   ========================================= */
+.btn-full {
+  display: block;
+  width: calc(100% - 32px);
+  margin: 16px;
+  padding: 17px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: var(--primary);
+  color: #fff;
+  font-weight: 800;
+  font-size: 15px;
+  cursor: pointer;
+  text-align: center;
+  letter-spacing: 0.01em;
+  transition: transform 0.1s, opacity 0.15s;
+}
+.btn-full:active { transform: scale(0.98); opacity: 0.9; }
+
+@media (min-width: 768px) {
+  .btn-full, .btn-outline-full {
+    cursor: pointer;
+    transition: transform 0.15s, opacity 0.15s, box-shadow 0.15s, background 0.15s;
+  }
+  .btn-full:hover { opacity: 0.92; box-shadow: 0 8px 20px rgba(15,52,96,0.18); transform: translateY(-1px); }
+  .btn-outline-full:hover { background: var(--primary-soft) !important; }
+}
+
+/* =========================================
+   BO'SH HOLAT
+   ========================================= */
+.empty-note {
+  text-align: center; padding: 40px 20px;
+  color: var(--muted);
+  display: flex; flex-direction: column;
+  align-items: center; gap: 10px;
+}
+.empty-note p { margin: 0; font-size: 14px; font-weight: 500; }
+
+/* =========================================
+   PROFIL AVATAR — rasm yoki harf
+   ========================================= */
+.profile-avatar {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  border: 3px solid rgba(255,255,255,0.45);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 14px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.22);
+}
+.profile-avatar img {
+  width: 100%; height: 100%;
+  object-fit: cover; border-radius: 50%; display: block;
+}
+.profile-avatar .avatar-letter {
+  font-size: 34px; font-weight: 800; color: #fff; line-height: 1;
+}
+
+/* =========================================
+   BOTTOM NAVIGATION (TABBAR)
+   ========================================= */
+.tabbar {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  height: 68px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background: #fff;
+  border-top: 1px solid #e5e7eb;
+  box-shadow: 0 -4px 18px rgba(0,0,0,.08);
+  z-index: 100;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.tabbar .tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  cursor: pointer;
+  gap: 2px;
+  padding: 4px 0;
+}
+.tabbar .tab .tab-icon {
+  width: 48px; height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  transition: all .2s ease;
+}
+.tabbar .tab .tab-icon svg,
+.tabbar .tab .tab-icon .inline-ic {
+  width: 26px !important;
+  height: 26px !important;
+  display: block;
+}
+.tabbar .tab.active .tab-icon {
+  background: #eef4ff;
+  color: var(--primary);
+  transform: translateY(-2px);
+}
+.tabbar .tab:not(.active) .tab-icon {
+  color: #9ca3af;
+}
+.tabbar .tab .tab-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+  margin-top: 1px;
+}
+.tabbar .tab.active .tab-label {
+  color: var(--primary);
+}
+
+/* =========================================
+   Z-INDEX FIXES
+   ========================================= */
+.sheet-overlay {
+  z-index: 200 !important;
+}
+.sheet-overlay .sheet {
+  z-index: 201 !important;
+}
+#qnavSheet {
+  z-index: 200 !important;
+}
+#qnavSheet .sheet {
+  z-index: 201 !important;
+}
+
+/* =========================================
+   XATO SAVOLLAR - BUTTON + REVEAL
+   ========================================= */
+.mistakes-open-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  background: var(--danger-soft, #fef2f2);
+  color: var(--danger, #ef4444);
+  border: 1.5px solid var(--danger, #ef4444);
+  border-radius: 14px;
+  padding: 14px 16px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  margin-bottom: 4px;
+  transition: opacity 0.15s;
+}
+.mistakes-open-btn:active { opacity: 0.75; }
+.mistakes-btn-arrow {
+  margin-left: auto;
+  opacity: 0.6;
+}
+
+/* Reveal javob tugmasi */
+.mistakes-reveal-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 12px 16px 4px;
+}
+.btn-reveal-answer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 13px 28px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  width: 100%;
+  justify-content: center;
+}
+.btn-reveal-answer:active { opacity: 0.8; }
+
+/* =====================================================
+   DESKTOP / PC RESPONSIVE LAYOUT
+   Breakpoint: 768px dan katta = PC rejimi
+   ===================================================== */
+
+@media (min-width: 768px) {
+
+  /* Asosiy wrapper — markazga olish */
+  body {
+    background: #e8edf5;
+  }
+
+  /* Barcha screenlarni markazga, karta ko'rinishida */
+  .screen.active {
+    min-height: 100vh;
+    align-items: center;
+    justify-content: flex-start;
+  }
+
+  /* Screen-home, leaderboard, profile, vocab — sidebar + content layout */
+  #screen-home,
+  #screen-leaderboard,
+  #screen-profile,
+  #screen-vocab {
+    flex-direction: row;
+    align-items: stretch;
+    min-height: 100vh;
+    background: #e8edf5;
+  }
+
+  /* ---- DESKTOP SIDEBAR (tabbar o'rniga) ---- */
+  .tabbar {
+    position: relative;
+    left: auto; right: auto; bottom: auto;
+    width: 220px;
+    min-height: 100vh;
+    flex-direction: column;
+    justify-content: flex-start;
+    height: auto;
+    background: var(--primary);
+    border-top: none;
+    border-right: none;
+    box-shadow: 2px 0 20px rgba(15,52,96,0.15);
+    padding: 32px 0 24px;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .tabbar .tab {
+    flex: none;
+    flex-direction: row;
+    justify-content: flex-start;
+    width: 100%;
+    height: auto;
+    padding: 13px 20px;
+    gap: 12px;
+    border-radius: 0;
+  }
+
+  .tabbar .tab:hover {
+    background: rgba(255,255,255,0.08);
+  }
+
+  .tabbar .tab.active {
+    background: rgba(255,255,255,0.15);
+    border-left: 3px solid var(--accent);
+  }
+
+  .tabbar .tab .tab-icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: transparent !important;
+    transform: none !important;
+  }
+
+  .tabbar .tab .tab-icon svg,
+  .tabbar .tab .tab-icon .inline-ic {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  .tabbar .tab:not(.active) .tab-icon { color: rgba(255,255,255,0.6); }
+  .tabbar .tab.active .tab-icon { color: #fff; }
+
+  .tabbar .tab .tab-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.7);
+    display: block !important;
+    margin-top: 0;
+  }
+
+  .tabbar .tab.active .tab-label { color: #fff; }
+
+  /* Sidebar logo */
+  .tabbar::before {
+    content: '📚 QBank';
+    display: block;
+    color: #fff;
+    font-size: 17px;
+    font-weight: 800;
+    padding: 0 20px 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.12);
+    margin-bottom: 12px;
+    letter-spacing: -0.3px;
+  }
+
+  /* ---- MAIN CONTENT AREA ---- */
+  #screen-home > :not(.tabbar),
+  #screen-leaderboard > :not(.tabbar),
+  #screen-profile > :not(.tabbar),
+  #screen-vocab > :not(.tabbar) {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 100vh;
+  }
+
+  /* Home header — desktop */
+  .home-header {
+    padding: 36px 36px 28px;
+    border-radius: 0;
+  }
+
+  .home-header h1 { font-size: 26px; }
+
+  /* Subject list — grid */
+  .subject-list {
+    padding: 24px 36px 40px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 14px;
+  }
+
+  .subject-card {
+    padding: 20px;
+    border-radius: 16px;
+    gap: 16px;
+  }
+  .subject-card .subject-icon {
+    width: 52px; height: 52px;
+    border-radius: 14px;
+  }
+  .subject-card .info h3 { font-size: 16px; }
+  .subject-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: rgba(15,52,96,0.12);
+  }
+
+  /* Leaderboard */
+  #leaderboardList {
+    padding: 24px 36px 40px;
+    max-width: 900px;
+  }
+
+  .home-header.gradient-header { padding: 36px 36px 28px; }
+
+  /* Profile */
+  .profile-header { padding: 36px 36px 24px; }
+  .profile-stats { padding: 0 36px; }
+  .profile-section-title { padding: 0 36px; }
+  #historyList { padding: 0 36px 40px; }
+
+  /* Test screen — centered card (see TEST CARD block below for full styling) */
+  #screen-test {
+    align-items: center;
+    justify-content: center;
+    background: #e8edf5;
+    padding: 24px;
+  }
+
+  #screen-test > * {
+    width: 100%;
+  }
+
+  /* Result screen */
+  #screen-result {
+    align-items: center;
+    justify-content: center;
+    background: #e8edf5;
+  }
+
+  #screen-result .result-header {
+    max-width: 560px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 48px 44px;
+    background: #fff;
+    border-radius: 24px;
+    box-shadow: var(--shadow-lg);
+    min-height: auto !important;
+    color: var(--text);
+  }
+  #screen-result .result-score { color: var(--text); }
+  #screen-result .result-sub { color: var(--muted); opacity: 1; }
+  #screen-result .pass-badge.passed { background: var(--success-soft); color: var(--success); }
+  #screen-result .pass-badge.failed { background: var(--danger-soft); color: var(--danger); }
+  #screen-result .result-stat-item {
+    background: var(--bg);
+    color: var(--text);
+  }
+  #screen-result .result-stat-item.correct { background: var(--success-soft); color: var(--success); }
+  #screen-result .result-stat-item.wrong { background: var(--danger-soft); color: var(--danger); }
+  #screen-result .result-stat-lbl { opacity: 0.75; }
+  #screen-result .result-home-link {
+    background: var(--primary-soft);
+    color: var(--primary);
+    border: none;
+    margin-top: 24px;
+  }
+  #screen-result .result-home-link:hover { background: var(--primary-light); color: #fff; }
+
+  /* So'zlar (vocab) natija ekrani — umumiy natija ekrani bilan bir xil uslub */
+  #screen-vocab-result {
+    align-items: center;
+    justify-content: center;
+    background: #e8edf5;
+  }
+  #screen-vocab-result .result-header {
+    max-width: 560px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 48px 44px;
+    background: #fff;
+    border-radius: 24px;
+    box-shadow: var(--shadow-lg);
+    min-height: auto !important;
+    color: var(--text);
+  }
+  #screen-vocab-result .result-score { color: var(--text); }
+  #screen-vocab-result .result-sub { color: var(--muted); opacity: 1; }
+  #screen-vocab-result .pass-badge.passed { background: var(--success-soft); color: var(--success); }
+  #screen-vocab-result .pass-badge.failed { background: var(--danger-soft); color: var(--danger); }
+  #screen-vocab-result .result-stat-item { background: var(--bg); color: var(--text); }
+  #screen-vocab-result .result-stat-item.correct { background: var(--success-soft); color: var(--success); }
+  #screen-vocab-result .result-stat-item.wrong { background: var(--danger-soft); color: var(--danger); }
+  #screen-vocab-result .result-stat-lbl { opacity: 0.75; }
+  #screen-vocab-result .result-home-link {
+    background: var(--primary-soft);
+    color: var(--primary);
+    border: none;
+    margin-top: 16px;
+  }
+  #screen-vocab-result .result-home-link:hover {
+    background: var(--primary-light); color: #fff;
+  }
+
+  /* Loading */
+  #screen-loading { background: #e8edf5; }
+
+  /* Browser entry (login) — centered card */
+  #screen-browser-entry {
+    background: #e8edf5;
+  }
+}
+
+@media (min-width: 1100px) {
+  .subject-list {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+  .tabbar { width: 240px; }
+}
+
+/* =====================================================
+   TEST CARD — PC UCHUN CHIROYLI KO'RINISH
+   Matn chap tomonda, javob variantlari o'ng tomonda
+   ===================================================== */
+@media (min-width: 900px) {
+  #screen-test {
+    background: #e8edf5;
+    padding: 32px;
+  }
+
+  .test-card {
+    width: 100%;
+    max-width: 1120px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 22px;
+    box-shadow: 0 18px 50px rgba(15,52,96,0.14);
+    overflow: hidden;
+    max-height: calc(100vh - 64px);
+  }
+
+  .progress-bar-track { height: 4px; }
+
+  .test-topbar {
+    padding: 18px 32px;
+  }
+  .test-topbar .progress { font-size: 14px; }
+  .test-topbar .timer { font-size: 14px; padding: 5px 14px; }
+  .test-topbar .exit {
+    font-size: 13.5px; font-weight: 600;
+    padding: 7px 14px; border-radius: 20px;
+    transition: background 0.15s;
+  }
+  .test-topbar .exit:hover { background: rgba(255,255,255,0.12); }
+
+  .question-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 32px 36px 36px;
+  }
+
+  .meta-bar {
+    margin: -32px -36px 22px;
+    padding: 12px 36px;
+    border-radius: 0;
+  }
+
+  .question-flag-row { margin-bottom: 18px; }
+  .flag-btn:hover { border-color: var(--primary-light); color: var(--primary-light); }
+
+  .question-columns {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    gap: 0;
+    align-items: stretch;
+  }
+  .question-passage-col { order: 1; }
+  .question-options-col { order: 2; }
+
+  .question-passage-col {
+    padding-right: 40px;
+    border-right: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    align-self: start;
+  }
+  .question-options-col {
+    padding-left: 40px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .question-text {
+    font-size: 17px;
+    line-height: 1.75;
+    margin-bottom: 18px;
+  }
+  .question-image { max-height: 50vh; }
+
+  .option {
+    padding: 18px 22px;
+    margin-bottom: 12px;
+    font-size: 15px;
+    border-radius: 12px;
+    transition: border-color 0.15s, background 0.15s, transform 0.12s, box-shadow 0.15s;
+  }
+  .option:hover {
+    border-color: var(--primary-light);
+    box-shadow: 0 4px 14px rgba(15,52,96,0.08);
+    transform: translateY(-1px);
+  }
+  .option:active { transform: translateY(0) scale(0.99); }
+  .option.selected:hover { border-color: var(--primary); }
+  .option .letter { width: 30px; height: 30px; font-size: 13.5px; }
+  .question-options-col .option:last-child { margin-bottom: 0; }
+
+  .test-bottombar {
+    position: static;
+    box-shadow: none;
+    border-top: 1px solid var(--border);
+    padding: 16px 32px;
+    padding-bottom: 16px;
+  }
+  .nav-grid-toggle { flex: none; padding: 10px 18px; }
+  .nav-grid-toggle:hover { background: var(--primary-soft); }
+  .btn-nav { padding: 11px 22px; font-size: 14.5px; }
+  .btn-nav.prev:hover { background: var(--border); }
+  .btn-nav.next:hover { opacity: 0.92; }
+}
+
+@media (min-width: 1200px) {
+  .test-card { max-width: 1220px; }
+  .question-area { padding: 36px 44px 40px; }
+  .meta-bar { margin: -36px -44px 24px; padding: 13px 44px; }
+  .question-passage-col { padding-right: 48px; }
+  .question-options-col { padding-left: 48px; }
+}
+
+/* =====================================================
+   BOTTOM SHEETS — PC'DA MARKAZLASHGAN MODAL KO'RINISHI
+   ===================================================== */
+@media (min-width: 768px) {
+  .sheet-overlay {
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .sheet {
+    width: 100%;
+    max-width: 460px;
+    border-radius: 22px;
+    animation: modalPop 0.18s ease;
+  }
+  #qnavSheet .sheet {
+    max-width: 560px;
+  }
+  .qnav-grid {
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+  }
+  .qnav-item { font-size: 14.5px; }
+}
+
+
+/* =====================================================
+   LOGIN / RO'YXATDAN O'TISH — YANGI CHIROYLI UI
+   ===================================================== */
+
+#screen-browser-entry {
+  background: linear-gradient(135deg, #0f3460 0%, #1a4a7a 50%, #16213e 100%);
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.login-card {
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  width: 100%;
+  max-width: 420px;
+  overflow: hidden;
+}
+
+.login-card-header {
+  background: linear-gradient(135deg, #0f3460, #1a5276);
+  padding: 36px 32px 28px;
+  text-align: center;
+  color: #fff;
+}
+
+.login-card-header .login-logo {
+  font-size: 48px;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.login-card-header h1 {
+  font-size: 22px;
+  font-weight: 800;
+  margin: 0 0 6px;
+  letter-spacing: -0.3px;
+}
+
+.login-card-header p {
+  font-size: 13px;
+  opacity: 0.75;
+  margin: 0;
+}
+
+.login-card-body {
+  padding: 28px 32px 32px;
+}
+
+/* Telegram tugma */
+.btn-telegram-login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: #229ED9;
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  padding: 15px 20px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  text-decoration: none;
+  transition: opacity 0.2s, transform 0.15s;
+  letter-spacing: -0.1px;
+}
+
+.btn-telegram-login:hover { opacity: 0.92; transform: translateY(-1px); }
+.btn-telegram-login:active { opacity: 1; transform: scale(0.98); }
+
+.login-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.login-divider::before,
+.login-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #e2e8f0;
+}
+
+.login-divider span {
+  font-size: 12px;
+  color: #94a3b8;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Tab switcher */
+.auth-tabs {
+  display: flex;
+  background: #f1f5f9;
+  border-radius: 12px;
+  padding: 4px;
+  gap: 4px;
+  margin-bottom: 20px;
+}
+
+.auth-tab-btn {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: transparent;
+  color: #64748b;
+}
+
+.auth-tab-btn.active {
+  background: #fff;
+  color: var(--primary);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+/* Input fields */
+.auth-field {
+  margin-bottom: 14px;
+}
+
+.auth-field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.auth-field input {
+  width: 100%;
+  padding: 13px 14px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 15px;
+  color: #0f172a;
+  background: #f8fafc;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.auth-field input:focus {
+  border-color: var(--primary);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(15,52,96,0.08);
+}
+
+.auth-field input::placeholder { color: #94a3b8; }
+
+/* Submit button */
+.btn-auth-submit {
+  width: 100%;
+  padding: 15px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 4px;
+  transition: opacity 0.2s, transform 0.15s;
+  letter-spacing: -0.1px;
+}
+
+.btn-auth-submit:hover { opacity: 0.9; transform: translateY(-1px); }
+.btn-auth-submit:active { opacity: 1; transform: scale(0.98); }
+
+.auth-error-msg {
+  color: var(--danger);
+  font-size: 13px;
+  font-weight: 500;
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: var(--danger-soft);
+  border-radius: 10px;
+  display: none;
+  text-align: left;
+}
+
+.auth-name-row {
+  display: flex;
+  gap: 10px;
+}
+.auth-name-row .auth-field { flex: 1; }
+
+/* =====================================================
+   SCREEN MAIN CONTENT WRAPPER (desktop layout)
+   ===================================================== */
+
+.screen-main-content {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Mobile: tabbar fixed at bottom, content scrolls */
+@media (max-width: 767px) {
+  .screen-main-content {
+    padding-bottom: 80px;
+  }
+  #leaderboardList {
+    padding: 0 0 8px !important;
+  }
+  #historyList {
+    padding-bottom: 8px !important;
+  }
+}
+
+/* Desktop: sidebar nav, content scrollable area */
+@media (min-width: 768px) {
+  #screen-home,
+  #screen-leaderboard,
+  #screen-profile,
+  #screen-vocab {
+    flex-direction: row;
+  }
+
+  .screen-main-content {
+    flex: 1;
+    max-height: 100vh;
+    overflow-y: auto;
+  }
+
+  /* Subject grid */
+  .subject-list {
+    padding: 24px 36px 40px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 14px;
+  }
+
+  /* Leaderboard desktop */
+  #leaderboardList {
+    padding: 24px 36px 40px !important;
+    max-width: 900px;
+  }
+
+  .leaderboard-item {
+    border-radius: 14px;
+    margin-bottom: 10px;
+    padding: 16px 20px;
+    transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+  }
+  .leaderboard-item:hover {
+    transform: translateX(4px);
+    box-shadow: var(--shadow-md);
+    border-color: rgba(15,52,96,0.1);
+  }
+  .lb-rank { width: 40px; height: 40px; font-size: 15px; }
+  .lb-name { font-size: 15px; }
+  .lb-sub { font-size: 12.5px; }
+  .lb-pct { font-size: 19px; }
+
+  /* Profile desktop */
+  .profile-header {
+    padding: 36px 36px 24px;
+    text-align: center;
+  }
+  .profile-stats {
+    padding: 0 36px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .profile-section-title {
+    padding: 20px 36px 12px;
+  }
+  #historyList {
+    padding: 0 36px 40px !important;
+  }
+}
+
+@media (min-width: 1100px) {
+  .subject-list {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    padding: 28px 48px 48px;
+  }
+  .tabbar { width: 250px; }
+  #leaderboardList { padding: 28px 48px 48px !important; max-width: 1040px; }
+  .profile-header { padding: 40px 48px 28px; }
+  .profile-stats { padding: 0 48px; }
+  .profile-section-title { padding: 20px 48px 12px; }
+  #historyList { padding: 0 48px 48px !important; }
+}
+
+/* =========================================
+   VOCAB (SO'ZLAR O'YINI) BO'LIMI
+   ========================================= */
+.badge-passed, .badge-attempted {
+  flex-shrink: 0; font-size: 11px; font-weight: 800;
+  padding: 5px 10px; border-radius: 20px;
+  display: inline-flex; align-items: center; gap: 4px;
+  white-space: nowrap;
+}
+.badge-passed { background: var(--success-soft); color: var(--success); }
+.badge-attempted { background: var(--accent-soft); color: #9a6c00; }
+
+/* ---- HUB HERO ---- */
+.vocab-hero {
+  margin: 4px 16px 18px;
+  padding: 22px 20px 20px;
+  border-radius: var(--radius-lg);
+  background: var(--gradient-hero);
+  color: #fff;
+  box-shadow: var(--shadow-md);
+}
+.vocab-hero-top {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+}
+.vocab-hero h1 {
+  margin: 0; font-size: 21px; font-weight: 800;
+  display: flex; align-items: center; gap: 8px;
+}
+.vocab-hero p { margin: 6px 0 0; font-size: 13px; color: rgba(255,255,255,0.78); }
+.vocab-rank-pill {
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.28);
+  color: #fff; border-radius: 20px; padding: 7px 13px;
+  font-size: 12.5px; font-weight: 700; cursor: pointer; flex-shrink: 0;
+  transition: background 0.15s;
+}
+.vocab-rank-pill:active { background: rgba(255,255,255,0.26); }
+.vocab-rank-pill .icon { color: var(--accent); }
+.vocab-hero-top-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.vocab-lives-pill {
+  display: flex; align-items: center; gap: 5px;
+  background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.28);
+  color: #fff; border-radius: 20px; padding: 7px 12px;
+  font-size: 12.5px; font-weight: 800;
+}
+.vocab-lives-pill svg { color: #ff5c7a; flex-shrink: 0; }
+.vocab-lives-pill.empty { color: rgba(255,255,255,0.65); }
+.vocab-lives-pill.empty svg { color: rgba(255,255,255,0.4); }
+
+.session-lives-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 12.5px; font-weight: 800; color: var(--text);
+}
+.session-lives-badge svg { color: #ff5c7a; }
+.session-lives-badge.empty svg { color: var(--muted); }
+.test-topbar .session-lives-badge { color: #fff; }
+.test-topbar .session-lives-badge svg { color: #ff8fa8; }
+.test-topbar .session-lives-badge.empty svg { color: rgba(255,255,255,0.5); }
+
+.vocab-lives-banner {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--danger-soft); border: 1px solid rgba(229,57,53,0.25);
+  border-radius: 14px; padding: 12px 14px; margin: 0 0 14px; font-size: 12.5px;
+  color: var(--danger); font-weight: 600; line-height: 1.5;
+}
+.vocab-lives-banner svg { flex-shrink: 0; color: #ff5c7a; }
+
+.vocab-hero-stats {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+  margin-top: 18px;
+}
+.vocab-hero-stat {
+  background: rgba(255,255,255,0.1); border-radius: var(--radius-sm);
+  padding: 10px 4px; text-align: center;
+}
+.vocab-hero-stat-num {
+  font-size: 17px; font-weight: 800; min-height: 22px;
+  display: flex; align-items: center; justify-content: center;
+}
+.vocab-hero-stat-lbl { font-size: 10px; margin-top: 3px; color: rgba(255,255,255,0.72); font-weight: 600; }
+
+.vocab-points-earned {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  font-size: 15px; font-weight: 800; color: var(--accent);
+  margin: 6px 0 4px;
+}
+
+.vocab-section-title {
+  font-size: 13px; font-weight: 800; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.04em;
+  margin: 4px 20px 10px;
+}
+
+.vocab-detail-stats {
+  display: flex; gap: 10px; padding: 4px 16px 8px;
+}
+.vocab-stat {
+  flex: 1; background: var(--card); border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm); padding: 16px 8px;
+  text-align: center;
+}
+.vocab-stat-num {
+  font-size: 20px; font-weight: 800; color: var(--primary);
+  display: flex; align-items: center; justify-content: center; min-height: 26px;
+}
+.vocab-stat-lbl { font-size: 11.5px; color: var(--muted); margin-top: 4px; font-weight: 600; }
+
+.vocab-detail-actions { padding: 8px 0 32px; }
+.btn-outline-full {
+  background: #fff !important;
+  color: var(--primary) !important;
+  border: 1.5px solid var(--primary) !important;
+}
+
+/* ---- FLASHCARDS ---- */
+.flashcard-wrap { display: flex; flex-direction: column; align-items: center; padding: 18px 16px 8px; }
+.flashcard {
+  width: 100%; max-width: 380px; height: 220px;
+  perspective: 1200px; cursor: pointer; margin-bottom: 10px;
+}
+.flashcard-face {
+  position: relative; width: 100%; height: 100%;
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-md);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 20px;
+  backface-visibility: hidden; transition: transform 0.5s;
+}
+.flashcard-front {
+  background: var(--gradient-hero); color: #fff;
+  font-size: 28px; font-weight: 800; letter-spacing: 0.01em;
+}
+.flashcard-back {
+  position: absolute; top: 0; left: 0;
+  background: #fff; border: 2px solid var(--primary);
+  transform: rotateY(180deg);
+}
+.flashcard.flipped .flashcard-front { transform: rotateY(180deg); }
+.flashcard.flipped .flashcard-back { transform: rotateY(0deg); }
+.flashcard-translation { font-size: 23px; font-weight: 800; color: var(--primary); }
+.flashcard-example { margin-top: 10px; font-size: 12.5px; color: var(--muted); line-height: 1.4; }
+.flashcard-hint { font-size: 12px; color: var(--muted); margin: 0 0 20px; text-align: center; }
+.flashcard-nav { display: flex; gap: 10px; padding: 0 16px 16px; }
+.flashcard-nav .btn-full { flex: 1; width: auto; margin: 0; padding: 17px 20px; }
+.flashcard-nav #vocabFlashPrevBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ---- BO'LIMLAR RO'YXATI (sections list) ---- */
+.vocab-sections-list { padding: 0 16px 28px; display: flex; flex-direction: column; gap: 10px; }
+.vocab-section-card {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--card); border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm); padding: 14px 16px;
+  transition: transform 0.1s;
+}
+.vocab-section-card.unlocked, .vocab-section-card.passed { cursor: pointer; }
+.vocab-section-card.unlocked:active, .vocab-section-card.passed:active { transform: scale(0.98); }
+.vocab-section-card.locked { opacity: 0.55; }
+.vocab-section-lead {
+  flex-shrink: 0; width: 36px; height: 36px; border-radius: 50%;
+  background: var(--primary-soft); color: var(--primary);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 14px;
+}
+.vocab-section-card.passed .vocab-section-lead { background: var(--success-soft); color: var(--success); }
+.vocab-section-card.locked .vocab-section-lead { background: var(--bg); color: var(--muted); }
+.vocab-section-lock-lbl { font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.03em; }
+.vocab-section-info { flex: 1; min-width: 0; }
+.vocab-section-info h4 { margin: 0 0 2px; font-size: 14.5px; font-weight: 800; }
+.vocab-section-info p { margin: 0; font-size: 12px; color: var(--muted); line-height: 1.35; }
+.vocab-section-card .arrow { flex-shrink: 0; color: var(--muted); }
+
+/* ---- BO'LIM TESTIDA QAYTA SO'RASH XABARI ---- */
+.vocab-quiz-retry-hint {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  margin: 14px auto 0; max-width: 320px;
+  background: var(--accent-soft); color: #9a6c00;
+  font-size: 12px; font-weight: 700;
+  padding: 7px 12px; border-radius: 20px;
+}
+
+/* ---- NATIJA EKRANI HARAKATLARI (dynamic actions) ---- */
+.vocab-result-actions { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: 4px; }
+.vocab-result-actions .result-home-link { margin-top: 0; }
+
+/* ---- SESSIYA NATIJASI (breakdown) ---- */
+.vocab-session-summary {
+  background: var(--card); border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm); margin: 18px 16px 0; padding: 4px 16px;
+}
+.vocab-session-summary-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 0; font-size: 13px; font-weight: 600; color: var(--muted);
+}
+.vocab-session-summary-row + .vocab-session-summary-row { border-top: 1px solid var(--border); }
+.vocab-session-summary-row span { display: flex; align-items: center; gap: 7px; }
+.vocab-session-summary-row strong { color: var(--text); font-weight: 800; font-size: 13px; }
+
+/* ---- Bo'lim kartasi ---- */
+.vocab-group-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 18px;
+  padding: 16px 16px 14px; margin-bottom: 4px;
+  transition: box-shadow 0.15s, transform 0.15s, border-color 0.15s;
+}
+.vocab-group-card:not(.locked):hover { box-shadow: 0 6px 18px rgba(15,52,96,0.08); border-color: rgba(15,52,96,0.18); }
+.vocab-group-card.locked { opacity: 0.55; }
+.vocab-group-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.vocab-group-head h4 { margin: 0; font-size: 15px; font-weight: 800; }
+.vocab-group-head .vocab-group-lock-lbl {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.03em;
+  color: var(--muted); background: var(--bg); padding: 4px 8px; border-radius: 20px;
+}
+.vocab-group-sub { font-size: 12px; color: var(--muted); margin: 0 0 14px; line-height: 1.5; }
+.vocab-group-sections { display: flex; flex-direction: column; gap: 8px; }
+.vocab-group-section-row {
+  display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 12px; background: var(--bg);
+}
+.vocab-group-section-row .lead {
+  width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 800; background: var(--card); color: var(--muted); flex-shrink: 0;
+}
+.vocab-group-section-row.passed .lead { background: var(--success-soft); color: var(--success); }
+.vocab-group-section-row .info { flex: 1; min-width: 0; }
+.vocab-group-section-row .info h5 { margin: 0 0 1px; font-size: 12.5px; font-weight: 700; }
+.vocab-group-section-row .info p { margin: 0; font-size: 11px; color: var(--muted); }
+.vocab-group-actions { margin-top: 2px; }
+.vocab-group-actions .btn-full {
+  width: 100%; margin: 0; padding: 13px;
+  border-radius: 13px; font-size: 14px; letter-spacing: 0;
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  box-shadow: 0 4px 14px rgba(15,52,96,0.16);
+}
+.vocab-group-actions .btn-full.repeat {
+  background: var(--primary-soft); color: var(--primary); box-shadow: none;
+  border: 1.5px solid rgba(15,52,96,0.14);
+}
+@media (min-width: 768px) {
+  .vocab-group-actions .btn-full:hover { transform: translateY(-1px); box-shadow: 0 8px 22px rgba(15,52,96,0.22); }
+  .vocab-group-actions .btn-full.repeat:hover { background: var(--primary-soft); box-shadow: none; border-color: var(--primary); }
+}
+
+/* ---- Moslashtirish (matching) ---- */
+.vocab-match-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.vocab-match-col { display: flex; flex-direction: column; gap: 8px; }
+.vocab-match-item {
+  padding: 12px 10px; border-radius: 12px; border: 1.5px solid var(--border); background: var(--card);
+  font-size: 13px; font-weight: 600; text-align: center; cursor: pointer; user-select: none;
+  transition: all .12s ease; word-break: break-word;
+}
+.vocab-match-item:active { transform: scale(0.97); }
+.vocab-match-item.selected { border-color: var(--accent); background: var(--accent-soft, rgba(99,102,241,0.12)); }
+.vocab-match-item.correct { border-color: var(--success); background: var(--success-soft); color: var(--success); pointer-events: none; }
+.vocab-match-item.wrong { border-color: var(--danger); background: var(--danger-soft); color: var(--danger); }
+.vocab-match-item.matched-hidden { visibility: hidden; pointer-events: none; }
+
+/* ---- Yozish (typing) ---- */
+.vocab-type-card { display: flex; flex-direction: column; align-items: center; padding: 30px 10px 0; text-align: center; }
+.vocab-type-hint {
+  font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+  color: var(--muted); margin-bottom: 8px;
+}
+.vocab-type-word { font-size: 26px; font-weight: 800; margin-bottom: 22px; }
+.vocab-type-input {
+  width: 100%; max-width: 340px; padding: 14px 16px; border-radius: 14px; border: 1.5px solid var(--border);
+  background: var(--card); color: var(--text); font-size: 16px; text-align: center; font-weight: 600;
+}
+.vocab-type-input:focus { outline: none; border-color: var(--accent); }
+.vocab-type-input.correct { border-color: var(--success); background: var(--success-soft); color: var(--success); }
+.vocab-type-input.wrong { border-color: var(--danger); background: var(--danger-soft); color: var(--danger); }
+.vocab-type-feedback { min-height: 20px; font-size: 12.5px; font-weight: 700; margin: 10px 0 20px; color: var(--danger); }
+.vocab-type-feedback.correct { color: var(--success); }
+.vocab-type-card .btn-full { max-width: 340px; }
+
+/* ---- REYTING TOGGLE (So'zlar / Savollar) ---- */
+.lb-switch {
+  display: flex; gap: 8px; margin: 0 16px 14px; padding: 4px;
+  background: #eef0f3; border-radius: 14px;
+}
+.lb-switch-btn {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+  border: none; background: transparent; padding: 10px 8px;
+  font-size: 12.5px; font-weight: 700; color: var(--muted);
+  border-radius: 10px; cursor: pointer; transition: all 0.15s;
+}
+.lb-switch-btn.active { background: #fff; color: var(--primary); box-shadow: var(--shadow-sm); }
+
+@media (min-width: 700px) {
+  .vocab-detail-stats { max-width: 700px; margin: 0 auto; }
+  .vocab-detail-actions { max-width: 700px; margin: 0 auto; }
+  .vocab-hero { max-width: 760px; margin-left: auto; margin-right: auto; }
+  .vocab-sections-list { max-width: 760px; margin-left: auto; margin-right: auto; }
+  .vocab-section-title { max-width: 760px; margin-left: auto; margin-right: auto; padding-left: 4px; padding-right: 4px; }
+  .lb-switch { max-width: 700px; margin-left: auto; margin-right: auto; }
+}
+
+/* =====================================================
+   LUG'AT (VOCAB) — KOMPYUTER/PLANSHET UCHUN CHIROYLI KO'RINISH
+   ===================================================== */
+@media (min-width: 900px) {
+  /* Fan tafsiloti — bo'limlar ro'yxati 2 ustunli, keng va qulay */
+  .vocab-sections-list {
+    max-width: 860px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .vocab-section-card {
+    padding: 18px 20px;
+    border-radius: 16px;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .vocab-section-card.unlocked:hover, .vocab-section-card.passed:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+  .vocab-detail-stats { max-width: 860px; gap: 14px; }
+  .vocab-hero { max-width: 860px; padding: 30px 32px 28px; }
+  .vocab-hero h1 { font-size: 25px; }
+  .vocab-hero p { font-size: 14px; }
+  .vocab-section-title { max-width: 860px; }
+
+  /* Kartochkalar (flashcards) — kattaroq, markazlashgan */
+  .flashcard-wrap { padding: 36px 16px 12px; }
+  .flashcard { max-width: 480px; height: 270px; }
+  .flashcard-front { font-size: 32px; }
+  .flashcard-translation { font-size: 26px; }
+  .flashcard-nav { max-width: 480px; margin: 0 auto; padding: 0 16px 24px; }
+
+  /* Bo'lim testi — savol maydoni kengroq va markazda */
+  #vocabQuizArea { max-width: 620px; margin: 0 auto; }
+}

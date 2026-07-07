@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Developer Panel — Savollar banki</title>
+<style>
+  :root {
+    --bg: #0f172a; --surface: #1e293b; --surface2: #273447; --border: #334155;
+    --accent: #6366f1; --accent-h: #818cf8; --green: #22c55e; --red: #ef4444;
+    --yellow: #f59e0b; --text: #f1f5f9; --text2: #94a3b8; --radius: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; }
+
+  /* AUTH */
+  #authScreen { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; }
+  .auth-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
+    padding: 48px 40px; text-align: center; max-width: 400px; width: 100%;
+  }
+  .auth-logo { font-size: 48px; margin-bottom: 16px; }
+  .auth-card h1 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+  .auth-card p { color: var(--text2); margin-bottom: 32px; font-size: 14px; }
+  .auth-input {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 14px; color: var(--text); font-size: 15px;
+    outline: none; margin-bottom: 12px; transition: border-color 0.2s;
+  }
+  .auth-input:focus { border-color: var(--accent); }
+  .btn-login {
+    width: 100%; background: var(--accent); color: #fff; border: none;
+    border-radius: 10px; padding: 14px; font-size: 15px; font-weight: 600;
+    cursor: pointer; transition: opacity 0.2s; margin-top: 4px;
+  }
+  .btn-login:hover { opacity: 0.88; }
+  .auth-error { color: var(--red); font-size: 13px; margin-top: 14px; display: none; text-align: left; }
+
+  /* LAYOUT */
+  #appScreen { display: none; }
+  .sidebar {
+    position: fixed; top: 0; left: 0; bottom: 0; width: 240px;
+    background: var(--surface); border-right: 1px solid var(--border);
+    padding: 24px 0; display: flex; flex-direction: column; z-index: 100;
+  }
+  .sidebar-logo { padding: 0 20px 24px; border-bottom: 1px solid var(--border); font-size: 15px; font-weight: 700; color: var(--accent-h); display: flex; align-items: center; gap: 8px; }
+  .sidebar-nav { flex: 1; padding: 12px 0; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 12px 20px; cursor: pointer; font-size: 14px; font-weight: 500; color: var(--text2); transition: all 0.15s; }
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { background: var(--surface2); color: var(--accent-h); border-right: 3px solid var(--accent); }
+  .nav-item .icon { font-size: 18px; width: 20px; text-align: center; }
+  .sidebar-user { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+  .sidebar-user-info { flex: 1; min-width: 0; }
+  .sidebar-user-name { font-size: 13px; font-weight: 600; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .sidebar-user-email { font-size: 11px; color: var(--text2); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .btn-logout { background: none; border: none; color: var(--text2); cursor: pointer; font-size: 16px; padding: 4px; }
+  .btn-logout:hover { color: var(--red); }
+  .user-avatar-circle { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: #fff; flex-shrink: 0; }
+
+  .main { margin-left: 240px; padding: 32px; min-height: 100vh; }
+  .page { display: none; }
+  .page.active { display: block; }
+  .page-title { font-size: 22px; font-weight: 700; margin-bottom: 24px; }
+
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-bottom: 28px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; display: flex; flex-direction: column; gap: 6px; }
+  .stat-label { font-size: 12px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat-value { font-size: 32px; font-weight: 700; }
+  .stat-value.green { color: var(--green); }
+  .stat-value.accent { color: var(--accent-h); }
+  .stat-value.yellow { color: var(--yellow); }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 24px; }
+  .card-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; padding: 10px 12px; color: var(--text2); font-weight: 500; border-bottom: 1px solid var(--border); }
+  td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+  tr:last-child td { border-bottom: none; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .badge-password { background: #2d1b69; color: #a78bfa; }
+  .badge-telegram { background: #1a3347; color: #38bdf8; }
+
+  /* LIVE MONITORING */
+  .pulse-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--green); margin-right: 6px; box-shadow: 0 0 0 0 rgba(34,197,94,0.6); animation: pulse 1.6s infinite; }
+  .pulse-dot.idle { background: var(--text2); animation: none; box-shadow: none; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(34,197,94,0.6); } 70% { box-shadow: 0 0 0 8px rgba(34,197,94,0); } 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); } }
+  .live-empty { text-align: center; padding: 36px 20px; color: var(--text2); }
+  .live-empty .big { font-size: 38px; margin-bottom: 10px; }
+  .live-count-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .live-count-num { font-size: 36px; font-weight: 700; color: var(--green); }
+  .live-count-label { font-size: 13px; color: var(--text2); }
+  .progress-bar-wrap { width: 100px; height: 8px; background: var(--surface2); border-radius: 6px; overflow: hidden; display: inline-block; vertical-align: middle; margin-right: 8px; }
+  .progress-bar-fill { height: 100%; background: var(--accent); transition: width 0.4s; }
+  .badge-online { background: #14532d; color: #4ade80; }
+  .badge-idle { background: #3f3f1f; color: #facc15; }
+  .badge-paused { background: var(--surface2); color: var(--text2); }
+
+  .form-group { margin-bottom: 16px; }
+  label { display: block; font-size: 13px; color: var(--text2); margin-bottom: 6px; }
+  textarea, input[type=text], input[type=email], input[type=password] {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 14px; color: var(--text); font-size: 14px; resize: vertical;
+    outline: none; transition: border-color 0.2s; font-family: inherit;
+  }
+  textarea:focus, input:focus { border-color: var(--accent); }
+  textarea { min-height: 120px; }
+
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-size: 14px; font-weight: 600; transition: opacity 0.2s; }
+  .btn:hover { opacity: 0.85; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-danger { background: var(--red); color: #fff; }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+  .toggle-row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .toggle { position: relative; width: 48px; height: 26px; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider { position: absolute; inset: 0; background: var(--border); border-radius: 26px; cursor: pointer; transition: 0.3s; }
+  .toggle-slider:before { content: ''; position: absolute; width: 20px; height: 20px; background: #fff; border-radius: 50%; left: 3px; bottom: 3px; transition: 0.3s; }
+  .toggle input:checked + .toggle-slider { background: var(--accent); }
+  .toggle input:checked + .toggle-slider:before { transform: translateX(22px); }
+  .toggle-label { font-size: 14px; font-weight: 600; }
+
+  .broadcast-item { padding: 12px 0; border-bottom: 1px solid var(--border); display: flex; gap: 12px; align-items: flex-start; }
+  .broadcast-item:last-child { border-bottom: none; }
+  .broadcast-msg { flex: 1; font-size: 13px; color: var(--text); }
+  .broadcast-meta { font-size: 11px; color: var(--text2); margin-top: 4px; }
+  .broadcast-stats { font-size: 12px; color: var(--green); white-space: nowrap; }
+
+  .alert { padding: 12px 16px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; display: none; }
+  .alert-success { background: #14532d; color: #86efac; }
+  .alert-error { background: #7f1d1d; color: #fca5a5; }
+
+  .spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 40px auto; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .empty { text-align: center; color: var(--text2); padding: 40px; font-size: 14px; }
+
+  @media (max-width: 768px) {
+    .sidebar { width: 200px; }
+    .main { margin-left: 200px; padding: 20px; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- AUTH SCREEN -->
+<div id="authScreen">
+  <div class="auth-card">
+    <div class="auth-logo">⚙️</div>
+    <h1>Developer Panel</h1>
+    <p>Tizimga kirish uchun email va parolingizni kiriting</p>
+    <input class="auth-input" type="email" id="loginEmail" placeholder="Email" autocomplete="email"/>
+    <input class="auth-input" type="password" id="loginPassword" placeholder="Parol" autocomplete="current-password"
+      onkeydown="if(event.key==='Enter') doLogin()"/>
+    <button class="btn-login" onclick="doLogin()">Kirish</button>
+    <div class="auth-error" id="authError"></div>
+  </div>
+</div>
+
+<!-- APP SCREEN -->
+<div id="appScreen">
+  <div class="sidebar">
+    <div class="sidebar-logo">⚙️ Dev Panel</div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active" onclick="showPage('dashboard', this)"><span class="icon">📊</span> Dashboard</div>
+      <div class="nav-item" onclick="showPage('live', this)"><span class="icon">🟢</span> Jonli monitoring</div>
+      <div class="nav-item" onclick="showPage('broadcast', this)"><span class="icon">📢</span> Broadcast</div>
+      <div class="nav-item" onclick="showPage('maintenance', this)"><span class="icon">🔧</span> Maintenance</div>
+      <div class="nav-item" onclick="showPage('students', this)"><span class="icon">👥</span> Foydalanuvchilar</div>
+      <div class="nav-item" onclick="showPage('developers', this)"><span class="icon">🔐</span> Developerlar</div>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-avatar-circle" id="userAvatarCircle">D</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name" id="userName">Developer</div>
+        <div class="sidebar-user-email" id="userEmail"></div>
+      </div>
+      <button class="btn-logout" onclick="logout()" title="Chiqish">✕</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-title">📊 Dashboard</div>
+      <div class="stats-grid" id="statsGrid"><div class="spinner"></div></div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:24px">
+        <div class="card">
+          <div class="card-title">📅 So'ngi 7 kun testlar</div>
+          <div id="dailyChart" style="font-size:13px"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">📚 Top fanlar</div>
+          <div id="topSubjects" style="font-size:13px"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="justify-content:space-between">
+          <span>🕐 So'ngi faollik</span>
+          <button class="btn btn-primary btn-sm" onclick="sendStatsToBot()">📤 Botga statistika yuborish</button>
+        </div>
+        <div id="recentActivity"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <!-- LIVE MONITORING -->
+    <div class="page" id="page-live">
+      <div class="page-title">🟢 Jonli monitoring</div>
+      <div class="card" id="liveSummaryCard">
+        <div class="spinner"></div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="justify-content:space-between">
+          <span>👀 Hozir test ishlayotganlar</span>
+          <span style="font-size:11px;color:var(--text2)">Avtomatik yangilanadi (4 sek)</span>
+        </div>
+        <div id="liveSessionsList"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <!-- BROADCAST -->
+    <div class="page" id="page-broadcast">
+      <div class="page-title">📢 Broadcast xabar</div>
+      <div class="card">
+        <div class="card-title">Barcha foydalanuvchilarga xabar yuborish</div>
+        <div class="alert alert-success" id="bcAlert"></div>
+        <div class="form-group">
+          <label>Xabar matni (HTML teglar: &lt;b&gt;, &lt;i&gt;, &lt;a&gt;)</label>
+          <textarea id="bcMessage" placeholder="Xabar matnini yozing..."></textarea>
+        </div>
+        <button class="btn btn-primary" onclick="sendBroadcast()">📤 Yuborish</button>
+      </div>
+      <div class="card">
+        <div class="card-title">Yuborilgan xabarlar tarixi</div>
+        <div id="broadcastList"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <!-- MAINTENANCE -->
+    <div class="page" id="page-maintenance">
+      <div class="page-title">🔧 Maintenance Mode</div>
+      <div class="card">
+        <div class="alert alert-success" id="mainAlert"></div>
+        <div class="toggle-row">
+          <label class="toggle">
+            <input type="checkbox" id="mainToggle" onchange="updateMaintenance()"/>
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="toggle-label" id="mainStatus">O'chirilgan</span>
+        </div>
+        <p style="color:var(--text2);font-size:13px;margin-bottom:20px">Yoqilganda barcha foydalanuvchilar ko'radi va bot ham xabar yuboradi.</p>
+        <div class="form-group">
+          <label>Xabar (foydalanuvchilarga ko'rsatiladi)</label>
+          <textarea id="mainMessage" rows="3"></textarea>
+        </div>
+        <button class="btn btn-primary" onclick="saveMaintenance()">💾 Saqlash</button>
+      </div>
+    </div>
+
+    <!-- STUDENTS -->
+    <div class="page" id="page-students">
+      <div class="page-title">👥 Foydalanuvchilar</div>
+      <div class="card">
+        <div id="studentsList"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <!-- DEVELOPERS -->
+    <div class="page" id="page-developers">
+      <div class="page-title">🔐 Developer ruxsatlari</div>
+      <div class="card">
+        <div class="card-title">Yangi developer qo'shish</div>
+        <div class="alert" id="devAlert"></div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <input type="email" id="devEmail" placeholder="email@example.com" style="flex:1;min-width:200px"/>
+          <input type="password" id="devPassword" placeholder="Parol (kamida 6 belgi)" style="flex:1;min-width:200px"/>
+          <button class="btn btn-primary" onclick="addDeveloper()">➕ Qo'shish</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Developerlar ro'yxati</div>
+        <div id="developersList"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '/api';
+let devToken = localStorage.getItem('dev_token');
+
+async function api(path, opts={}) {
+  const res = await fetch(API + path, {
+    headers: { 'Authorization': `Bearer ${devToken}`, 'Content-Type': 'application/json' },
+    ...opts
+  });
+  if (res.status === 401 || res.status === 403) { logout(); return null; }
+  return res.json();
+}
+
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('authError');
+  errEl.style.display = 'none';
+  if (!email || !password) { errEl.style.display='block'; errEl.textContent='Email va parol kiriting'; return; }
+
+  try {
+    const res = await fetch('/api/developer/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (!res.ok) { errEl.style.display='block'; errEl.textContent = data.error || 'Kirishda xatolik'; return; }
+    localStorage.setItem('dev_token', data.token);
+    devToken = data.token;
+    showApp(data.dev);
+  } catch(e) {
+    errEl.style.display='block'; errEl.textContent = 'Serverga ulanishda xatolik';
+  }
+}
+
+function logout() {
+  stopLivePolling();
+  localStorage.removeItem('dev_token');
+  devToken = null;
+  document.getElementById('appScreen').style.display = 'none';
+  document.getElementById('authScreen').style.display = 'flex';
+  document.getElementById('loginPassword').value = '';
+  document.getElementById('authError').style.display = 'none';
+}
+
+function showApp(dev) {
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('appScreen').style.display = 'block';
+  const name = dev?.name || dev?.email?.split('@')[0] || 'Dev';
+  const email = dev?.email || '';
+  document.getElementById('userName').textContent = name;
+  document.getElementById('userEmail').textContent = email;
+  document.getElementById('userAvatarCircle').textContent = name[0].toUpperCase();
+  loadDashboard();
+}
+
+function showPage(name, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  el.classList.add('active');
+  stopLivePolling();
+  if (name === 'dashboard') loadDashboard();
+  if (name === 'live') { loadLive(); startLivePolling(); }
+  if (name === 'broadcast') loadBroadcasts();
+  if (name === 'maintenance') loadMaintenance();
+  if (name === 'students') loadStudents();
+  if (name === 'developers') loadDevelopers();
+}
+
+async function init() {
+  if (!devToken) { document.getElementById('authScreen').style.display = 'flex'; return; }
+  const data = await api('/developer/stats');
+  if (!data) return;
+  try {
+    const payload = JSON.parse(atob(devToken.split('.')[1]));
+    showApp({ email: payload.email, name: payload.email?.split('@')[0] });
+  } catch(e) { showApp({}); }
+  renderDashboard(data);
+}
+
+async function loadDashboard() {
+  const data = await api('/developer/stats');
+  if (data) renderDashboard(data);
+}
+
+function renderDashboard(data) {
+  const { overview, dailyTests, topSubjects, recentActivity } = data;
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Jami foydalanuvchilar</div><div class="stat-value accent">${overview.total_students}</div></div>
+    <div class="stat-card"><div class="stat-label">Login/parol orqali</div><div class="stat-value green">${overview.password_students}</div></div>
+    <div class="stat-card"><div class="stat-label">Telegram orqali</div><div class="stat-value" style="color:#38bdf8">${overview.telegram_students}</div></div>
+    <div class="stat-card"><div class="stat-label">Jami testlar</div><div class="stat-value accent">${overview.total_attempts}</div></div>
+    <div class="stat-card"><div class="stat-label">Bugungi testlar</div><div class="stat-value yellow">${overview.attempts_today}</div></div>
+    <div class="stat-card"><div class="stat-label">Fanlar / Savollar</div><div class="stat-value">${overview.total_subjects}<span style="font-size:16px;color:var(--text2)"> / ${overview.total_questions}</span></div></div>
+  `;
+  const maxTests = Math.max(...dailyTests.map(d=>d.count), 1);
+  document.getElementById('dailyChart').innerHTML = dailyTests.map(d => `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <span style="color:var(--text2);width:80px;font-size:11px">${new Date(d.date).toLocaleDateString('uz')}</span>
+      <div style="flex:1;background:var(--surface2);border-radius:4px;height:20px;overflow:hidden">
+        <div style="background:var(--accent);height:100%;width:${Math.round(d.count/maxTests*100)}%;transition:width 0.5s"></div>
+      </div>
+      <span style="width:30px;text-align:right">${d.count}</span>
+    </div>
+  `).join('') || '<div class="empty">Ma\'lumot yo\'q</div>';
+
+  document.getElementById('topSubjects').innerHTML = topSubjects.map((s,i) => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+      <span>${i+1}. ${s.name}</span><span style="color:var(--accent-h)">${s.attempts} test</span>
+    </div>
+  `).join('') || '<div class="empty">Ma\'lumot yo\'q</div>';
+
+  document.getElementById('recentActivity').innerHTML = recentActivity.length ? `
+    <table>
+      <thead><tr><th>O'quvchi</th><th>Fan</th><th>Natija</th><th>Vaqt</th></tr></thead>
+      <tbody>${recentActivity.map(r => `
+        <tr>
+          <td>${r.first_name||''} ${r.last_name||''}</td>
+          <td>${r.subject}</td>
+          <td><b>${r.score}/${r.total}</b> (${r.total>0?Math.round(r.score/r.total*100):0}%)</td>
+          <td style="color:var(--text2);font-size:12px">${new Date(r.finished_at).toLocaleString('uz')}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>` : '<div class="empty">Hali test o\'tkazilmagan</div>';
+}
+
+let livePollTimer = null;
+function startLivePolling() {
+  stopLivePolling();
+  livePollTimer = setInterval(loadLive, 4000);
+}
+function stopLivePolling() {
+  if (livePollTimer) { clearInterval(livePollTimer); livePollTimer = null; }
+}
+
+async function loadLive() {
+  const data = await api('/developer/live');
+  if (data) renderLive(data);
+}
+
+function timeAgo(seconds) {
+  if (seconds < 60) return `${seconds} soniya oldin`;
+  const m = Math.floor(seconds / 60);
+  if (m < 60) return `${m} daqiqa oldin`;
+  return `${Math.floor(m / 60)} soat oldin`;
+}
+
+function renderLive(data) {
+  const { count_online, count_total, sessions } = data;
+  const count_idle = sessions.filter(s => s.status === 'idle').length;
+  const count_paused = sessions.filter(s => s.status === 'paused').length;
+  const extraParts = [];
+  if (count_idle > 0) extraParts.push(`${count_idle} ta kutilmoqda`);
+  if (count_paused > 0) extraParts.push(`${count_paused} ta saqlangan (chiqib ketgan)`);
+
+  document.getElementById('liveSummaryCard').innerHTML = count_online > 0 ? `
+    <div class="live-count-row">
+      <span class="pulse-dot"></span>
+      <span class="live-count-num">${count_online}</span>
+      <div>
+        <div style="font-weight:600">kishi hozir test ishlayapti</div>
+        <div class="live-count-label">${extraParts.length ? `+ ${extraParts.join(', ')}` : 'Barchasi faol'}</div>
+      </div>
+    </div>
+  ` : `
+    <div class="live-count-row">
+      <span class="pulse-dot idle"></span>
+      <div>
+        <div style="font-weight:600;color:var(--text2)">Hozir hech kim test ishlamayapti</div>
+        <div class="live-count-label">${extraParts.length ? extraParts.join(', ') : "Faol sessiyalar yo'q"}</div>
+      </div>
+    </div>
+  `;
+
+  const listEl = document.getElementById('liveSessionsList');
+  if (!sessions.length) {
+    listEl.innerHTML = `<div class="live-empty"><div class="big">😴</div>Hozircha hech kim test ishlamayapti</div>`;
+    return;
+  }
+
+  const statusBadge = (s) => {
+    if (s.status === 'online') return `<span class="badge badge-online">🟢 Faol</span>`;
+    if (s.status === 'idle') return `<span class="badge badge-idle">🟡 Kutilmoqda</span>`;
+    return `<span class="badge badge-paused">⏸️ Saqlangan (chiqib ketgan)</span>`;
+  };
+
+  listEl.innerHTML = `
+    <table>
+      <thead><tr><th>Holat</th><th>O'quvchi</th><th>Fan</th><th>Progress</th><th>So'ngi faollik</th><th>Boshlandi</th></tr></thead>
+      <tbody>${sessions.map(s => `
+        <tr>
+          <td>${statusBadge(s)}</td>
+          <td>${s.first_name || ''} ${s.last_name || ''}${s.username ? ` <span style="color:var(--text2);font-size:11px">@${s.username}</span>` : ''}</td>
+          <td>${s.subject_name}</td>
+          <td>
+            <span class="progress-bar-wrap"><span class="progress-bar-fill" style="width:${s.progress_pct}%"></span></span>
+            <span style="font-size:12px;color:var(--text2)">${(s.current_index||0)+1}/${s.total_questions} (${s.answered_count} javob berilgan)</span>
+          </td>
+          <td style="font-size:12px;color:var(--text2)">${timeAgo(s.seconds_since_activity)}</td>
+          <td style="font-size:12px;color:var(--text2)">${new Date(s.started_at).toLocaleTimeString('uz')}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
+async function sendStatsToBot() {
+  const btn = event.currentTarget;
+  btn.disabled = true; btn.textContent = 'Yuborilmoqda...';
+  const data = await api('/developer/send-stats', { method: 'POST' });
+  btn.disabled = false; btn.textContent = '📤 Botga statistika yuborish';
+  if (data?.ok) alert('✅ Statistika botga yuborildi!');
+  else alert('❌ Xatolik: ' + (data?.error || 'Noma\'lum'));
+}
+
+async function loadBroadcasts() {
+  const data = await api('/developer/broadcasts');
+  if (!data) return;
+  document.getElementById('broadcastList').innerHTML = data.length ? data.map(b => `
+    <div class="broadcast-item">
+      <div style="flex:1">
+        <div class="broadcast-msg">${b.message.slice(0,120)}${b.message.length>120?'...':''}</div>
+        <div class="broadcast-meta">${b.sent_by} • ${new Date(b.created_at).toLocaleString('uz')}</div>
+      </div>
+      <div class="broadcast-stats">${b.status==='done'?`✅ ${b.total_sent} yuborildi, ❌ ${b.total_failed} xato`:`⏳ ${b.status}`}</div>
+    </div>`).join('') : '<div class="empty">Hali xabar yuborilmagan</div>';
+}
+
+async function sendBroadcast() {
+  const msg = document.getElementById('bcMessage').value.trim();
+  if (!msg) return alert('Xabar matnini kiriting!');
+  if (!confirm(`Barcha foydalanuvchilarga xabar yuborilsinmi?`)) return;
+  const alertEl = document.getElementById('bcAlert');
+  const data = await api('/developer/broadcasts', { method: 'POST', body: JSON.stringify({ message: msg }) });
+  alertEl.style.display = 'block';
+  if (data?.ok) {
+    alertEl.className = 'alert alert-success';
+    alertEl.textContent = '✅ Xabar yuborilmoqda...';
+    document.getElementById('bcMessage').value = '';
+    setTimeout(() => loadBroadcasts(), 3000);
+  } else {
+    alertEl.style.background = '#7f1d1d'; alertEl.style.color = '#fca5a5';
+    alertEl.textContent = '❌ Xatolik: ' + (data?.error || 'Noma\'lum');
+  }
+}
+
+async function loadMaintenance() {
+  const data = await api('/developer/maintenance');
+  if (!data) return;
+  document.getElementById('mainToggle').checked = data.enabled;
+  document.getElementById('mainStatus').textContent = data.enabled ? '🔴 Yoqilgan' : '🟢 O\'chirilgan';
+  document.getElementById('mainMessage').value = data.message || '';
+}
+
+function updateMaintenance() {
+  const enabled = document.getElementById('mainToggle').checked;
+  document.getElementById('mainStatus').textContent = enabled ? '🔴 Yoqilgan' : '🟢 O\'chirilgan';
+}
+
+async function saveMaintenance() {
+  const enabled = document.getElementById('mainToggle').checked;
+  const message = document.getElementById('mainMessage').value.trim();
+  const data = await api('/developer/maintenance', { method: 'PUT', body: JSON.stringify({ enabled, message }) });
+  const alertEl = document.getElementById('mainAlert');
+  alertEl.style.display = 'block';
+  if (data?.id) {
+    alertEl.className = 'alert alert-success';
+    alertEl.textContent = `✅ Saqlandi! Maintenance ${enabled ? 'yoqildi' : 'o\'chirildi'}.`;
+  } else {
+    alertEl.style.background = '#7f1d1d'; alertEl.style.color = '#fca5a5';
+    alertEl.textContent = '❌ Xatolik: ' + (data?.error || 'Noma\'lum');
+  }
+}
+
+async function loadStudents() {
+  const data = await api('/developer/students');
+  if (!data) return;
+  document.getElementById('studentsList').innerHTML = data.length ? `
+    <table>
+      <thead><tr><th>Ism</th><th>Username</th><th>Kirish usuli</th><th>Testlar</th><th>Ro'yxatdan</th></tr></thead>
+      <tbody>${data.map(s => `
+        <tr>
+          <td>${s.first_name||''} ${s.last_name||''}</td>
+          <td style="font-size:12px;color:var(--text2)">${s.username||'—'}</td>
+          <td><span class="badge badge-${s.auth_type==='password'?'password':'telegram'}">${s.auth_type==='password'?'🔑 Login/parol':'✈️ Telegram'}</span></td>
+          <td>${s.attempt_count}</td>
+          <td style="font-size:12px;color:var(--text2)">${new Date(s.created_at).toLocaleDateString('uz')}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>` : '<div class="empty">Foydalanuvchilar yo\'q</div>';
+}
+
+async function loadDevelopers() {
+  const data = await api('/developer/developers');
+  if (!data) return;
+  document.getElementById('developersList').innerHTML = data.length ? `
+    <table>
+      <thead><tr><th>Ism</th><th>Email</th><th>Qo'shilgan</th><th></th></tr></thead>
+      <tbody>${data.map(d => `
+        <tr>
+          <td>${d.name||d.email}</td>
+          <td style="color:var(--text2)">${d.email}</td>
+          <td style="font-size:12px;color:var(--text2)">${new Date(d.created_at).toLocaleDateString('uz')}</td>
+          <td>
+            <button class="btn btn-sm" style="background:var(--surface2);color:var(--text);margin-right:6px" onclick="changeDevPassword(${d.id})">🔑 Parol</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteDev(${d.id})">O'chirish</button>
+          </td>
+        </tr>`).join('')}
+      </tbody>
+    </table>` : '<div class="empty">Developerlar yo\'q</div>';
+}
+
+async function addDeveloper() {
+  const email = document.getElementById('devEmail').value.trim();
+  const password = document.getElementById('devPassword').value;
+  const alertEl = document.getElementById('devAlert');
+  alertEl.style.display = 'none';
+  if (!email || !password) { alertEl.style.display='block'; alertEl.style.background='#7f1d1d'; alertEl.style.color='#fca5a5'; alertEl.textContent='Email va parol kiriting'; return; }
+  const data = await api('/developer/developers', { method: 'POST', body: JSON.stringify({ email, password }) });
+  alertEl.style.display = 'block';
+  if (data?.id) {
+    alertEl.className = 'alert alert-success';
+    alertEl.textContent = `✅ ${email} developer sifatida qo'shildi`;
+    document.getElementById('devEmail').value = '';
+    document.getElementById('devPassword').value = '';
+    loadDevelopers();
+  } else {
+    alertEl.style.background = '#7f1d1d'; alertEl.style.color = '#fca5a5';
+    alertEl.textContent = '❌ ' + (data?.error || 'Xatolik');
+  }
+}
+
+async function changeDevPassword(id) {
+  const pw = prompt('Yangi parol (kamida 6 belgi):');
+  if (!pw || pw.length < 6) { if(pw !== null) alert('Parol kamida 6 belgidan iborat bo\'lishi kerak'); return; }
+  const data = await api(`/developer/developers/${id}/password`, { method: 'PUT', body: JSON.stringify({ password: pw }) });
+  if (data?.ok) alert('✅ Parol yangilandi');
+  else alert('❌ Xatolik: ' + (data?.error || 'Noma\'lum'));
+}
+
+async function deleteDev(id) {
+  if (!confirm('Bu developerni o\'chirmoqchimisiz?')) return;
+  await api('/developer/developers/' + id, { method: 'DELETE' });
+  loadDevelopers();
+}
+
+init();
+</script>
+</body>
+</html>

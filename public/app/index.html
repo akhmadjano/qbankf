@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<title>Savollar banki</title>
+<link rel="stylesheet" href="css/style.css" />
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+
+<!-- Telegram to'liq ekran rejimida native "Close/menyu" tugmalari uchun oq fon -->
+<div id="tgSafeAreaTop" class="tg-safe-area-top"></div>
+
+<!-- MAINTENANCE -->
+<div class="screen" id="screen-maintenance" style="display:none;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;padding:32px;text-align:center">
+  <div id="maintenanceClock" style="font-size:52px;font-weight:800;letter-spacing:2px;margin-bottom:8px;color:#f1f5f9">--:--</div>
+  <div style="font-size:13px;color:#64748b;margin-bottom:24px" id="maintenanceDate"></div>
+  <div style="font-size:40px;margin-bottom:16px">🔧</div>
+  <h2 style="font-size:22px;font-weight:700;margin-bottom:12px">Texnik ishlar</h2>
+  <p id="maintenanceMsg" style="color:#94a3b8;max-width:320px;line-height:1.6">Saytda texnik ishlar olib borilmoqda. Tez orada qaytamiz!</p>
+</div>
+
+<!-- BRAUZER ORQALI KIRISH (Telegram taklifi + login/parol) -->
+<div class="screen" id="screen-browser-entry">
+  <div class="login-card">
+    <div class="login-card-header">
+      <span class="login-logo">📚</span>
+      <h1>Savollar banki</h1>
+      <p>Bilimingizni sinab ko'ring</p>
+    </div>
+    <div class="login-card-body">
+      <!-- Telegram -->
+      <a id="telegramBotLink" href="#" target="_blank" class="btn-telegram-login">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 7.2-1.55 7.3c-.12.53-.42.66-.85.41l-2.36-1.74-1.14 1.1c-.13.13-.23.23-.47.23l.17-2.4 4.36-3.94c.19-.17-.04-.27-.3-.1l-5.4 3.4-2.32-.73c-.5-.16-.51-.5.11-.74l9.07-3.5c.42-.15.78.1.65.7z"/></svg>
+        Telegram bot orqali kirish
+      </a>
+
+      <div class="login-divider"><span>yoki</span></div>
+
+      <!-- Tabs -->
+      <div class="auth-tabs">
+        <button id="tabLoginBtn" class="auth-tab-btn active" onclick="switchAuthTab('login')">Kirish</button>
+        <button id="tabRegisterBtn" class="auth-tab-btn" onclick="switchAuthTab('register')">Ro'yxatdan o'tish</button>
+      </div>
+
+      <!-- Login form -->
+      <div id="authFormLogin">
+        <div class="auth-field">
+          <label>Login</label>
+          <input type="text" id="loginUsername" placeholder="loginni kiriting" autocomplete="username"
+            onkeydown="if(event.key==='Enter') submitLogin()"/>
+        </div>
+        <div class="auth-field">
+          <label>Parol</label>
+          <input type="password" id="loginPassword" placeholder="parolni kiriting" autocomplete="current-password"
+            onkeydown="if(event.key==='Enter') submitLogin()"/>
+        </div>
+        <button class="btn-auth-submit" onclick="submitLogin()">Kirish →</button>
+      </div>
+
+      <!-- Register form -->
+      <div id="authFormRegister" style="display:none">
+        <div class="auth-name-row">
+          <div class="auth-field">
+            <label>Ism *</label>
+            <input type="text" id="regFirst" placeholder="Ism" autocomplete="given-name"/>
+          </div>
+          <div class="auth-field">
+            <label>Familiya</label>
+            <input type="text" id="regLast" placeholder="Familiya" autocomplete="family-name"/>
+          </div>
+        </div>
+        <div class="auth-field">
+          <label>Login *</label>
+          <input type="text" id="regUsername" placeholder="kamida 3 belgi" autocomplete="username"/>
+        </div>
+        <div class="auth-field">
+          <label>Parol *</label>
+          <input type="password" id="regPassword" placeholder="kamida 4 belgi" autocomplete="new-password"
+            onkeydown="if(event.key==='Enter') submitRegister()"/>
+        </div>
+        <button class="btn-auth-submit" onclick="submitRegister()">Ro'yxatdan o'tish →</button>
+      </div>
+
+      <div id="authError" class="auth-error-msg"></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- LOADING -->
+<div class="screen active" id="screen-loading">
+  <div class="spinner"></div>
+</div>
+
+<!-- HOME -->
+<div class="screen" id="screen-home">
+  <nav class="tabbar">
+    <div class="tab active" data-tab="home">
+      <span class="tab-icon icon icon-home"></span>
+      <span class="tab-label">Bosh sahifa</span>
+    </div>
+    <div class="tab" data-tab="leaderboard">
+      <span class="tab-icon icon icon-trophy"></span>
+      <span class="tab-label">Reyting</span>
+    </div>
+    <div class="tab" data-tab="vocab">
+      <span class="tab-icon icon icon-layers"></span>
+      <span class="tab-label">Lug'at</span>
+    </div>
+    <div class="tab" data-tab="profile">
+      <span class="tab-icon icon icon-user"></span>
+      <span class="tab-label">Profil</span>
+    </div>
+  </nav>
+  <div class="screen-main-content">
+    <div class="home-header">
+      <h1><span class="icon-book-open"></span> Savollar banki</h1>
+      <p>Fan tanlang va mashq qilishni boshlang</p>
+    </div>
+    <div class="subject-list" id="subjectList"></div>
+  </div>
+</div>
+
+<!-- LEADERBOARD (REYTING) -->
+<div class="screen" id="screen-leaderboard">
+  <nav class="tabbar">
+    <div class="tab" data-tab="home">
+      <span class="tab-icon icon icon-home"></span>
+      <span class="tab-label">Bosh sahifa</span>
+    </div>
+    <div class="tab active" data-tab="leaderboard">
+      <span class="tab-icon icon icon-trophy"></span>
+      <span class="tab-label">Reyting</span>
+    </div>
+    <div class="tab" data-tab="vocab">
+      <span class="tab-icon icon icon-layers"></span>
+      <span class="tab-label">Lug'at</span>
+    </div>
+    <div class="tab" data-tab="profile">
+      <span class="tab-icon icon icon-user"></span>
+      <span class="tab-label">Profil</span>
+    </div>
+  </nav>
+  <div class="screen-main-content">
+    <div class="home-header gradient-header">
+      <h1><span class="icon-trophy"></span> Reyting</h1>
+      <p>Qaysi reytingni ko'rmoqchisiz?</p>
+    </div>
+    <div class="lb-switch" id="lbSwitch">
+      <button class="lb-switch-btn active" data-lb="questions"><span class="icon-check-circle"></span> Savollar reytingi</button>
+      <button class="lb-switch-btn" data-lb="words"><span class="icon-layers"></span> So'zlar reytingi</button>
+    </div>
+    <div id="leaderboardList" style="padding-bottom:24px;"></div>
+  </div>
+</div>
+
+<!-- VOCAB (LUG'AT) -->
+<div class="screen" id="screen-vocab">
+  <nav class="tabbar">
+    <div class="tab" data-tab="home">
+      <span class="tab-icon icon icon-home"></span>
+      <span class="tab-label">Bosh sahifa</span>
+    </div>
+    <div class="tab" data-tab="leaderboard">
+      <span class="tab-icon icon icon-trophy"></span>
+      <span class="tab-label">Reyting</span>
+    </div>
+    <div class="tab active" data-tab="vocab">
+      <span class="tab-icon icon icon-layers"></span>
+      <span class="tab-label">Lug'at</span>
+    </div>
+    <div class="tab" data-tab="profile">
+      <span class="tab-icon icon icon-user"></span>
+      <span class="tab-label">Profil</span>
+    </div>
+  </nav>
+  <div class="screen-main-content">
+    <div class="vocab-hero">
+      <div class="vocab-hero-top">
+        <h1><span class="icon-layers"></span> So'zlar</h1>
+        <div class="vocab-hero-top-right">
+          <div class="vocab-lives-pill" id="vocabLivesPill"></div>
+          <button class="vocab-rank-pill" id="vocabRankPillBtn">
+            <span class="icon-trophy"></span>
+            <span id="vocabRankPillText">Reyting</span>
+          </button>
+        </div>
+      </div>
+      <p>Fan tanlang, o'rganing, mashq qiling, testdan o'ting — ball to'plang!</p>
+      <div class="vocab-hero-stats" id="vocabHeroStats"></div>
+    </div>
+
+    <div class="vocab-section-title">Fanni tanlang</div>
+    <div class="subject-list" id="vocabSubjectList"></div>
+  </div>
+</div>
+
+<!-- FAN TAFSILOTI (SUBJECT DETAIL) -->
+<div class="screen" id="screen-vocab-detail">
+  <div class="test-card">
+    <div class="test-topbar">
+      <span class="exit" id="vocabDetailBackBtn"><span class="icon-chevron-left"></span> Orqaga</span>
+    </div>
+    <div class="screen-main-content" style="padding-top:8px;">
+      <div class="home-header">
+        <h1 id="vocabDetailTitle"><span class="icon-layers"></span> Fan</h1>
+        <p id="vocabDetailDesc"></p>
+      </div>
+      <div class="vocab-detail-stats" id="vocabDetailStats"></div>
+      <div class="vocab-lives-banner" id="vocabLivesBanner" style="display:none;"></div>
+
+      <div class="vocab-section-title" style="margin:20px 0 10px; padding:0;">Bo'limlar (har birida 20 so'z)</div>
+      <div class="vocab-sections-list" id="vocabSectionsList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 0) FLASHCARDS (SO'ZLAR BILAN TANISHISH) -->
+<div class="screen" id="screen-vocab-flashcards">
+  <div class="test-card">
+    <div class="progress-bar-track"><div class="progress-bar" id="vocabFlashProgressBar"></div></div>
+    <div class="test-topbar">
+      <span class="progress" id="vocabFlashProgress">1/10 · Tanishish</span>
+      <span class="exit" id="vocabFlashExitBtn"><span class="icon-x"></span> Chiqish</span>
+    </div>
+    <div class="screen-main-content" style="padding-top:10px;">
+      <div class="flashcard-wrap">
+        <div class="flashcard" id="vocabFlashcard">
+          <div class="flashcard-face flashcard-front" id="vocabFlashFront"></div>
+          <div class="flashcard-face flashcard-back" id="vocabFlashBack"></div>
+        </div>
+        <p class="flashcard-hint" id="vocabFlashHint">Tarjimasini ko'rish uchun kartochkaga bosing</p>
+      </div>
+      <div class="flashcard-nav">
+        <button class="btn-outline-full btn-full" id="vocabFlashPrevBtn"><span class="icon-chevron-left"></span> Orqaga</button>
+        <button class="btn-full" id="vocabFlashNextBtn">Keyingisi <span class="icon-chevron-right"></span></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 1) MOSLASHTIRISH (MATCHING) -->
+<div class="screen" id="screen-vocab-match">
+  <div class="test-card">
+    <div class="progress-bar-track"><div class="progress-bar" id="vocabMatchProgressBar"></div></div>
+    <div class="test-topbar">
+      <span class="progress" id="vocabMatchProgress">1-bosqich · Moslashtirish</span>
+      <span class="session-lives-badge" id="vocabMatchLives"></span>
+      <span class="exit" id="vocabMatchExitBtn"><span class="icon-x"></span> Chiqish</span>
+    </div>
+    <div class="screen-main-content" style="padding-top:10px;">
+      <p class="flashcard-hint" style="margin:0 0 12px;">So'zni tarjimasi bilan mos qiling</p>
+      <div class="vocab-match-grid">
+        <div class="vocab-match-col" id="vocabMatchWordsCol"></div>
+        <div class="vocab-match-col" id="vocabMatchTransCol"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 2) YOZISH (TYPING) -->
+<div class="screen" id="screen-vocab-type">
+  <div class="test-card">
+    <div class="progress-bar-track"><div class="progress-bar" id="vocabTypeProgressBar"></div></div>
+    <div class="test-topbar">
+      <span class="progress" id="vocabTypeProgress">2-bosqich · Yozish</span>
+      <span class="session-lives-badge" id="vocabTypeLives"></span>
+      <span class="exit" id="vocabTypeExitBtn"><span class="icon-x"></span> Chiqish</span>
+    </div>
+    <div class="screen-main-content" style="padding-top:10px;">
+      <div class="vocab-type-card">
+        <div class="vocab-type-hint">O'zbekcha tarjimasi</div>
+        <div class="vocab-type-word" id="vocabTypeWord"></div>
+        <input type="text" class="vocab-type-input" id="vocabTypeInput" placeholder="Inglizcha so'zni yozing..." autocomplete="off" autocapitalize="off" spellcheck="false">
+        <div class="vocab-type-feedback" id="vocabTypeFeedback"></div>
+        <button class="btn-full" id="vocabTypeSubmitBtn">Tekshirish</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 3) ODDIY TEST -->
+<div class="screen" id="screen-vocab-quiz">
+  <div class="test-card">
+    <div class="progress-bar-track"><div class="progress-bar" id="vocabQuizProgressBar"></div></div>
+    <div class="test-topbar">
+      <span class="progress" id="vocabQuizProgress">Savol 1/10 · 3-bosqich · Oddiy test</span>
+      <span class="session-lives-badge" id="vocabQuizLives"></span>
+      <span class="exit" id="vocabQuizExitBtn"><span class="icon-x"></span> Chiqish</span>
+    </div>
+    <div class="question-area" id="vocabQuizArea"></div>
+  </div>
+</div>
+
+<!-- VOCAB RESULT (bo'lim natijasi) -->
+<div class="screen" id="screen-vocab-result">
+  <div class="result-header" style="min-height:100vh; display:flex; flex-direction:column; justify-content:center;">
+    <div class="result-pass-badge" id="vocabResultBadge"></div>
+    <div class="result-score" id="vocabResultScore">0/0</div>
+    <div class="result-sub" id="vocabResultPercent">0%</div>
+    <div class="vocab-points-earned" id="vocabResultPoints"></div>
+    <div class="result-breakdown" id="vocabResultBreakdown"></div>
+    <div class="vocab-result-actions" id="vocabResultActions"></div>
+  </div>
+</div>
+
+<!-- PROFILE -->
+<div class="screen" id="screen-profile">
+  <nav class="tabbar">
+    <div class="tab" data-tab="home">
+      <span class="tab-icon icon icon-home"></span>
+      <span class="tab-label">Bosh sahifa</span>
+    </div>
+    <div class="tab" data-tab="leaderboard">
+      <span class="tab-icon icon icon-trophy"></span>
+      <span class="tab-label">Reyting</span>
+    </div>
+    <div class="tab" data-tab="vocab">
+      <span class="tab-icon icon icon-layers"></span>
+      <span class="tab-label">Lug'at</span>
+    </div>
+    <div class="tab active" data-tab="profile">
+      <span class="tab-icon icon icon-user"></span>
+      <span class="tab-label">Profil</span>
+    </div>
+  </nav>
+  <div class="screen-main-content">
+    <div class="profile-header">
+      <div class="profile-avatar" id="profileAvatar"><span class="avatar-letter">?</span></div>
+      <div class="profile-name-row">
+        <div class="profile-name" id="profileName">—</div>
+        <button class="profile-edit-btn" id="profileEditBtn"><span class="icon-pencil"></span></button>
+      </div>
+      <div class="profile-username" id="profileUsername"></div>
+    </div>
+    <div class="profile-section-title"><span class="icon-bar-chart"></span> Statistika</div>
+    <div class="profile-stats" id="profileStats"></div>
+    <div class="profile-section-title"><span class="icon-clock"></span> Mening tarixim</div>
+    <div id="historyList" style="padding-bottom:24px;"></div>
+  </div>
+</div>
+
+<!-- START CONFIG SHEET -->
+<div class="sheet-overlay" id="startSheet">
+  <div class="sheet sheet-compact">
+    <div class="sheet-handle"></div>
+    <h3 id="startSheetTitle">Test sozlamalari</h3>
+    <p class="sheet-sub">Nechta savoldan mashq qilmoqchisiz?</p>
+    <p id="startSheetTimeNote" class="sheet-time-note"></p>
+    <div class="count-options" id="countOptions">
+      <div class="count-row">
+        <button data-count="50" class="active">50 ta</button>
+        <button data-count="100">100 ta</button>
+      </div>
+      <button data-count="9999" class="count-full">Barchasi</button>
+    </div>
+    <button class="btn-full" style="margin:0;" id="startTestBtn">Boshlash</button>
+  </div>
+</div>
+
+<!-- PROFILE EDIT SHEET -->
+<div class="sheet-overlay" id="editProfileSheet">
+  <div class="sheet sheet-compact">
+    <div class="sheet-handle"></div>
+    <h3>Profilni tahrirlash</h3>
+    <p class="sheet-sub">Ism va familiyangizni o'zgartiring</p>
+    <div class="edit-profile-fields">
+      <div class="field-group">
+        <label class="field-label">Ism <span class="field-required">*</span></label>
+        <input id="editFirstName" type="text" class="text-input" placeholder="Ismingiz" maxlength="50" />
+      </div>
+      <div class="field-group">
+        <label class="field-label">Familiya</label>
+        <input id="editLastName" type="text" class="text-input" placeholder="Familiyangiz" maxlength="50" />
+      </div>
+      <div id="editProfileError" class="field-error"></div>
+    </div>
+    <button class="btn-full" style="margin:0;" id="saveProfileBtn">Saqlash</button>
+  </div>
+</div>
+
+<!-- TEST SCREEN -->
+<div class="screen" id="screen-test">
+  <div class="test-card" id="testCard">
+    <div class="progress-bar-track"><div class="progress-bar" id="progressBar"></div></div>
+    <div class="test-topbar">
+      <span class="progress" id="testProgress">Savol 1/10</span>
+      <span class="timer" id="testTimer" style="display:none;"></span>
+      <span class="exit" id="exitTestBtn"><span class="icon-x"></span> Chiqish</span>
+    </div>
+    <div class="question-area" id="questionArea"></div>
+    <div class="test-bottombar">
+      <button class="btn-nav prev" id="prevBtn"><span class="icon-chevron-left"></span> Oldingi</button>
+      <div class="nav-grid-toggle" id="navGridToggle"><span class="icon-list"></span></div>
+      <button class="btn-nav next" id="nextBtn">Keyingi <span class="icon-chevron-right"></span></button>
+    </div>
+  </div>
+</div>
+
+<!-- QUESTION NAV GRID SHEET -->
+<div class="sheet-overlay" id="qnavSheet">
+  <div class="sheet" style="max-height:75vh;overflow-y:auto;">
+    <div class="sheet-handle"></div>
+    <h3>Savollar ro'yxati</h3>
+    <div class="qnav-grid" id="qnavGrid"></div>
+    <button class="btn-full" id="submitTestBtn"><span class="icon-check-circle"></span> Testni yakunlash</button>
+  </div>
+</div>
+
+<!-- RESULT SCREEN -->
+<div class="screen" id="screen-result">
+  <div class="result-header" style="min-height:100vh; display:flex; flex-direction:column; justify-content:center;">
+    <div class="result-pass-badge" id="resultPassBadge"></div>
+    <div class="result-score" id="resultScore">0/0</div>
+    <div class="result-sub" id="resultPercent">0%</div>
+    <div class="result-breakdown" id="resultBreakdown"></div>
+    <button class="result-home-link" id="backHomeBtn"><span class="icon-home"></span> Bosh sahifaga qaytish</button>
+  </div>
+</div>
+
+<!-- TOAST (qisqa bildirishnoma) -->
+<div class="toast" id="appToast"></div>
+
+<!-- GENERIC CONFIRM MODAL (chiroyli dialog) -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal-box">
+    <div class="modal-icon" id="confirmModalIcon"></div>
+    <h3 id="confirmModalTitle"></h3>
+    <p id="confirmModalMessage"></p>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-secondary" id="confirmModalCancel"></button>
+      <button class="modal-btn modal-btn-primary" id="confirmModalOk"></button>
+    </div>
+  </div>
+</div>
+
+<script src="js/icons.js"></script>
+<script src="js/app.js"></script>
+<script src="js/vocab.js"></script>
+</body>
+</html>
